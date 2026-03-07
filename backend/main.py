@@ -233,15 +233,22 @@ def list_my_events(
     db: Session = Depends(database.get_db),
 ):
     """List all events the user is part of."""
-    # Get events where user is a participant
+    # Get events where user is a participant with role
     participations = (
-        db.query(models.Event)
+        db.query(models.Event, models.EventParticipant.role)
         .join(models.EventParticipant, models.Event.id == models.EventParticipant.event_id)
         .filter(models.EventParticipant.user_id == current_user.id)
         .all()
     )
 
-    return [schemas.EventResponse.from_orm(event) for event in participations]
+    # Convert to response objects with role
+    events_with_roles = []
+    for event, role in participations:
+        event_dict = schemas.EventResponse.from_orm(event).dict()
+        event_dict['role'] = role
+        events_with_roles.append(schemas.EventResponse(**event_dict))
+
+    return events_with_roles
 
 
 @app.get("/api/events/{event_id}", response_model=schemas.EventResponse)

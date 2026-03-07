@@ -44,11 +44,19 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
     try {
       setLoading(true);
+
+      // Convert date string to ISO datetime if provided
+      let formattedDate = undefined;
+      if (eventDate) {
+        // HTML date input gives "YYYY-MM-DD", convert to ISO datetime
+        formattedDate = `${eventDate}T00:00:00`;
+      }
+
       const eventData = await apiClient.createEvent({
         name: name.trim(),
         description: description.trim() || undefined,
         event_type: eventType,
-        event_date: eventDate || undefined,
+        event_date: formattedDate,
       });
 
       // Show success with invite code
@@ -63,7 +71,17 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
       setEventType('hackathon');
       setEventDate('');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to create event');
+      console.error('Event creation error:', err.response?.data);
+
+      // Handle Pydantic validation errors
+      if (err.response?.data?.detail && Array.isArray(err.response.data.detail)) {
+        const errors = err.response.data.detail.map((e: any) =>
+          `${e.loc.join('.')}: ${e.msg}`
+        ).join(', ');
+        setError(`Validation error: ${errors}`);
+      } else {
+        setError(err.response?.data?.detail || 'Failed to create event');
+      }
     } finally {
       setLoading(false);
     }

@@ -85,6 +85,7 @@ class EventResponse(BaseModel):
     invite_code: str
     created_at: datetime
     participant_count: Optional[int] = None
+    role: Optional[str] = None  # User's role in this event (participant/sponsor)
 
     class Config:
         from_attributes = True
