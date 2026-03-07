@@ -1,11 +1,14 @@
 """Main FastAPI application with all routes."""
 
+# IMPORTANT: Load environment variables FIRST before importing auth
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 import secrets
 import string
 from typing import List
 
-from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

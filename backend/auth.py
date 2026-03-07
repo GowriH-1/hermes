@@ -1,13 +1,20 @@
 """Authentication utilities for JWT token management and password hashing."""
 
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-# Secret key for JWT encoding - CHANGE IN PRODUCTION!
-SECRET_KEY = "your-secret-key-change-in-production-hackathon-gift-portal-2024"
+# Load JWT secret from environment variable
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError(
+        "JWT_SECRET_KEY environment variable must be set! "
+        "Add it to backend/.env file"
+    )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days for hackathon convenience
 
