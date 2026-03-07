@@ -139,7 +139,7 @@ export default function WishlistBuilder() {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard">
-              <Button variant="ghost" size="icon" className="text-gray-500">
+              <Button variant="ghost" size="sm" className="text-gray-500">
                 <ChevronLeft size={24} />
               </Button>
             </Link>

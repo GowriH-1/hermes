@@ -56,11 +56,9 @@ class Event(Base):
     event_type = Column(String, nullable=False)  # 'hackathon', 'birthday', 'wedding', 'other'
     event_date = Column(DateTime)
     website_url = Column(String)
-    brand_info = Column(JSON, default=dict)
+    brand_info = Column(JSON, default=dict)  # Stores colors, logo, etc.
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     invite_code = Column(String, unique=True, index=True, nullable=False)
-    website_url = Column(String)
-    brand_info = Column(JSON, default=dict)  # Stores colors, logo, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

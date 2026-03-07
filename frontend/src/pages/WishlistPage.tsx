@@ -404,7 +404,7 @@ export default function WishlistPage() {
                           onClick={() => handleEventSwitch(event)}
                           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${selectedEventId === event.id ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}
                         >
-                          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center text-lg">🎁</div>
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-lg">🎁</div>
                           <div className="flex-1 min-w-0">
                             <div className="font-bold text-gray-900 dark:text-white text-sm truncate">{event.name}</div>
                             <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase">{event.participant_count} members</div>
