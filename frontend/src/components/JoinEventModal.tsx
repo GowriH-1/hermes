@@ -11,6 +11,7 @@ interface JoinEventModalProps {
   onClose: () => void;
   onSuccess: () => void;
   participantOnly?: boolean; // Hide role selection, force participant role
+  sponsorOnly?: boolean; // Hide role selection, force sponsor role
 }
 
 export const JoinEventModal: React.FC<JoinEventModalProps> = ({
@@ -18,9 +19,10 @@ export const JoinEventModal: React.FC<JoinEventModalProps> = ({
   onClose,
   onSuccess,
   participantOnly = false,
+  sponsorOnly = false,
 }) => {
   const [inviteCode, setInviteCode] = useState('');
-  const [role, setRole] = useState<'participant' | 'sponsor'>('participant');
+  const [role, setRole] = useState<'participant' | 'sponsor'>(sponsorOnly ? 'sponsor' : 'participant');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [joinedEvent, setJoinedEvent] = useState<any>(null);
@@ -45,7 +47,7 @@ export const JoinEventModal: React.FC<JoinEventModalProps> = ({
 
     // Reset all state
     setInviteCode('');
-    setRole('participant');
+    setRole(sponsorOnly ? 'sponsor' : 'participant');
     setError('');
     setJoinedEvent(null);
     setJoinedAsRole('');
@@ -63,7 +65,7 @@ export const JoinEventModal: React.FC<JoinEventModalProps> = ({
 
     try {
       setLoading(true);
-      const finalRole = participantOnly ? 'participant' : role;
+      const finalRole = participantOnly ? 'participant' : sponsorOnly ? 'sponsor' : role;
       const event = await apiClient.joinEvent(inviteCode.trim(), finalRole);
 
       // Store joined event to show success screen
@@ -216,8 +218,8 @@ export const JoinEventModal: React.FC<JoinEventModalProps> = ({
                   </p>
                 </div>
 
-                {/* Role Selection - only show if not participantOnly */}
-                {!participantOnly && (
+                {/* Role Selection - only show if not participantOnly or sponsorOnly */}
+                {!participantOnly && !sponsorOnly && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Join as
@@ -263,6 +265,8 @@ export const JoinEventModal: React.FC<JoinEventModalProps> = ({
                   <p className="text-sm text-blue-700 dark:text-blue-300">
                     {participantOnly ? (
                       <>💡 You'll join as a participant. Create wishlist items and link them to this event.</>
+                    ) : sponsorOnly ? (
+                      <>💡 You'll join as a sponsor. Browse participant wishlists and give gifts to make their day special.</>
                     ) : role === 'participant' ? (
                       <>💡 As a participant, you can create wishlist items and link them to this event.</>
                     ) : (

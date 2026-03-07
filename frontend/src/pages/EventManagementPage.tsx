@@ -113,17 +113,17 @@ export default function EventManagementPage() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">
+              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-950/30 rounded-lg flex items-center justify-center text-2xl">
                 💝
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Sponsored Events</h2>
-                <p className="text-sm text-gray-500">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sponsored Events</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Events where you're giving gifts
                 </p>
               </div>
             </div>
-            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+            <span className="px-3 py-1 bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 rounded-full text-sm font-medium">
               {events.length} events
             </span>
           </div>
@@ -157,7 +157,7 @@ export default function EventManagementPage() {
                   animate={{ opacity: 1, y: 0 }}
                   whileHover={{ scale: 1.02 }}
                 >
-                  <Card className="h-full hover:shadow-lg transition-all border-2 border-transparent hover:border-purple-200 dark:border-transparent dark:hover:border-purple-700">
+                  <Card className="h-full hover:shadow-lg transition-all border-2 dark:border-gray-600 hover:border-purple-200 dark:hover:border-purple-600">
                     <CardContent className="p-6">
                         {/* Header */}
                         <div className="mb-4">
@@ -262,6 +262,7 @@ export default function EventManagementPage() {
         isOpen={showJoinModal}
         onClose={() => setShowJoinModal(false)}
         onSuccess={loadEvents}
+        sponsorOnly={true}
       />
 
       {/* Confirm Leave Dialog */}

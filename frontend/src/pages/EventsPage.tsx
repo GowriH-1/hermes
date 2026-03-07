@@ -128,19 +128,19 @@ export default function EventsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 whileHover={{ scale: 1.02 }}
               >
-                <Card className="h-full hover:shadow-lg transition-all border-2 border-transparent hover:border-green-200">
+                <Card className="h-full hover:shadow-lg transition-all border-2 dark:border-gray-600 hover:border-green-200 dark:hover:border-green-600">
                   <CardContent className="p-6">
                     {/* Header */}
                     <div className="mb-4">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-bold text-xl text-gray-900 flex-1">
+                        <h3 className="font-bold text-xl text-gray-900 dark:text-white flex-1">
                           {event.name}
                         </h3>
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full whitespace-nowrap ml-2">
+                        <span className="px-2 py-1 bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full whitespace-nowrap ml-2">
                           Participant
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {event.event_type.replace('_', ' ')}
                         {event.event_date &&
                           ` • ${new Date(event.event_date).toLocaleDateString()}`}
@@ -155,7 +155,7 @@ export default function EventsPage() {
                     )}
 
                     {/* Stats */}
-                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4 pb-4 border-b">
+                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4 pb-4 border-b dark:border-gray-700">
                       <span className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
                         {event.participant_count || 0} members
