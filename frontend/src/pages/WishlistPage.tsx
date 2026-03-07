@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Trash2, Edit2, Star, Lock, Globe, X, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
