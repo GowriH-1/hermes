@@ -166,7 +166,7 @@ export const SponsorDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-gray-600">Event not found</p>
+          <p className="text-xl text-gray-600 dark:text-gray-400">Event not found</p>
           <button
             onClick={() => navigate('/dashboard')}
             className="mt-4 text-primary-500 hover:text-primary-600 font-medium"
@@ -192,7 +192,7 @@ export const SponsorDashboard: React.FC = () => {
               <p className="text-sm text-gray-500">{event.description}</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 {user?.full_name}
               </span>
               <button
@@ -250,7 +250,7 @@ export const SponsorDashboard: React.FC = () => {
                 className="text-center py-20"
               >
                 <div className="text-6xl mb-4">🎁</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Ready to Find Perfect Matches?
                 </h2>
                 <p className="text-gray-600 max-w-md mx-auto">
@@ -269,7 +269,7 @@ export const SponsorDashboard: React.FC = () => {
                 className="text-center py-20"
               >
                 <div className="text-6xl mb-4">🔍</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   No Matches Found
                 </h2>
                 <p className="text-gray-600 max-w-md mx-auto">

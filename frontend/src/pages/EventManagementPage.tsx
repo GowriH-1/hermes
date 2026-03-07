@@ -46,7 +46,7 @@ export default function EventManagementPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <TopNav />
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -56,14 +56,14 @@ export default function EventManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <TopNav />
 
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Event Management</h1>
-          <p className="text-gray-600">Create events and give gifts to participants</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Event Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">Create events and give gifts to participants</p>
         </div>
 
         {/* Quick Actions */}
@@ -108,7 +108,7 @@ export default function EventManagementPage() {
             <Card>
               <CardContent className="text-center py-16">
                 <div className="text-7xl mb-6">💝</div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
                   No Sponsored Events Yet
                 </h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">

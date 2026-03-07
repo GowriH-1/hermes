@@ -219,7 +219,7 @@ export default function WishlistPage() {
         <Card className="max-w-md">
           <CardContent className="text-center py-12">
             <div className="text-6xl mb-4">🎁</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">No Events Yet</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Events Yet</h2>
             <p className="text-gray-600 mb-6">
               Join or create an event as a participant to start building your wishlist!
             </p>
@@ -235,7 +235,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Top Navigation */}
       <TopNav />
 
@@ -476,7 +476,7 @@ export default function WishlistPage() {
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 mb-1 truncate">
+                          <h4 className="font-semibold text-gray-900 dark:text-white mb-1 truncate">
                             {product.title}
                           </h4>
                           {product.summary && (

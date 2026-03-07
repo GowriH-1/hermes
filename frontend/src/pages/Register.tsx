@@ -130,7 +130,7 @@ export default function Register() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating account...' : 'Sign Up'}
             </Button>
-            <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-center text-gray-600 dark:text-gray-400 dark:text-gray-400">
               Already have an account?{' '}
               <Link to="/login" className="text-primary hover:underline">
                 Sign in
