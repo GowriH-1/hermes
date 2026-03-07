@@ -8,12 +8,22 @@
   }
 
   * {
-    @apply border-border;
+    border-color: theme('colors.gray.200');
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    * {
+      border-color: theme('colors.gray.800');
+    }
   }
 }
 
@@ -54,13 +64,28 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-900;
+  background-color: #f3f4f6;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-700 rounded-lg;
+  background-color: #d1d5db;
+  border-radius: 0.5rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-gray-600;
+  background-color: #9ca3af;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background-color: #111827;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #374151;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #4b5563;
+  }
 }
