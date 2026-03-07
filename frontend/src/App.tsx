@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import WishlistPage from './pages/WishlistPage';
+import EventsPage from './pages/EventsPage';
 import EventManagementPage from './pages/EventManagementPage';
 import SponsorEventView from './pages/SponsorEventView';
 
@@ -88,6 +89,14 @@ function App() {
               path="/events"
               element={
                 <PrivateRoute>
+                  <EventsPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/event-management"
+              element={
+                <PrivateRoute>
                   <EventManagementPage />
                 </PrivateRoute>
               }
@@ -103,7 +112,7 @@ function App() {
             {/* Redirect old routes */}
             <Route path="/events/:eventId/participant" element={<Navigate to="/wishlist" />} />
             <Route path="/events/:eventId" element={<Navigate to="/events" />} />
-            <Route path="/sponsor/:eventId" element={<Navigate to="/events" />} />
+            <Route path="/sponsor/:eventId" element={<Navigate to="/event-management" />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

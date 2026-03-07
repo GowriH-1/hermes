@@ -40,7 +40,21 @@ export function TopNav() {
               <Link
                 to="/events"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isActive('/events')
+                  location.pathname === '/events'
+                    ? 'bg-green-100 text-green-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📅</span>
+                  <span>Events</span>
+                </div>
+              </Link>
+
+              <Link
+                to="/event-management"
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isActive('/event-management')
                     ? 'bg-purple-100 text-purple-700'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
@@ -68,7 +82,7 @@ export function TopNav() {
         <div className="md:hidden pb-3 flex space-x-1">
           <Link
             to="/wishlist"
-            className={`flex-1 px-3 py-2 rounded-lg font-medium text-center transition-colors ${
+            className={`flex-1 px-2 py-2 rounded-lg font-medium text-center transition-colors ${
               isActive('/wishlist')
                 ? 'bg-blue-100 text-blue-700'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -76,21 +90,35 @@ export function TopNav() {
           >
             <div className="flex items-center justify-center gap-1">
               <span>🎁</span>
-              <span className="text-sm">Wishlist</span>
+              <span className="text-xs">Wishlist</span>
             </div>
           </Link>
 
           <Link
             to="/events"
-            className={`flex-1 px-3 py-2 rounded-lg font-medium text-center transition-colors ${
-              isActive('/events')
+            className={`flex-1 px-2 py-2 rounded-lg font-medium text-center transition-colors ${
+              location.pathname === '/events'
+                ? 'bg-green-100 text-green-700'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-1">
+              <span>📅</span>
+              <span className="text-xs">Events</span>
+            </div>
+          </Link>
+
+          <Link
+            to="/event-management"
+            className={`flex-1 px-2 py-2 rounded-lg font-medium text-center transition-colors ${
+              isActive('/event-management')
                 ? 'bg-purple-100 text-purple-700'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             <div className="flex items-center justify-center gap-1">
               <span>💝</span>
-              <span className="text-sm">Events</span>
+              <span className="text-xs">Manage</span>
             </div>
           </Link>
         </div>
