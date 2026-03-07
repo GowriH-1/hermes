@@ -2,9 +2,13 @@
 
 import os
 from typing import List, Optional
+from dotenv import load_dotenv
 
 from exa_py import Exa
 from schemas import ExaProduct
+
+# Load environment variables
+load_dotenv()
 
 
 # Mock data for testing (saves API credits!)
@@ -102,52 +106,102 @@ class ExaService:
 
         try:
             # Enhance query with shopping context
-            enhanced_query = f"shop buy purchase {query}"
-
-            # Add price constraints to query if provided
+            enhanced_query = f"Finding the best {query} to buy"
             if price_min is not None or price_max is not None:
                 price_info = []
                 if price_min is not None:
                     price_info.append(f"over ${price_min}")
                 if price_max is not None:
                     price_info.append(f"under ${price_max}")
-                enhanced_query += f" {' '.join(price_info)}"
+                enhanced_query += f" with budget {' and '.join(price_info)}"
 
-            # Search with Exa
-            search_response = self.client.search_and_contents(
+            # Define output schema for structured product data
+            output_schema = {
+                "type": "object",
+                "description": "List of products matching the search query",
+                "required": ["products"],
+                "properties": {
+                    "products": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["name", "url", "price"],
+                            "properties": {
+                                "name": { "type": "string", "description": "The full name or title of the product" },
+                                "url": { "type": "string", "description": "The exact URL to the product page" },
+                                "price": { "type": "number", "description": "The current price of the product in USD" },
+                                "description": { "type": "string", "description": "A concise description of the product and why it's a good gift" },
+                                "image_url": { "type": "string", "description": "URL of the product image if available" }
+                            }
+                        }
+                    }
+                }
+            }
+
+            # Search with Exa using "deep" search for best results
+            print(f"Searching Exa (deep) for: {enhanced_query}")
+            search_response = self.client.search(
                 query=enhanced_query,
+                type="deep",
                 num_results=max_results,
-                use_autoprompt=True,  # Let Exa optimize the query
-                type="auto",  # Auto-detect best search type
-                text={"max_characters": 500},  # Get text snippets
+                output_schema=output_schema,
+                contents={"highlights": {"max_characters": 500}}
             )
 
             products = []
-            for result in search_response.results:
-                # Extract price from text if available
-                price = self._extract_price(result.text) if hasattr(result, "text") else None
+            
+            # Extract structured content from Exa deep search
+            if hasattr(search_response, "output") and hasattr(search_response.output, "content"):
+                extracted_data = search_response.output.content
+                if "products" in extracted_data:
+                    for p in extracted_data["products"]:
+                        # Filter by price if specified (extra validation)
+                        price = p.get("price")
+                        if price is not None:
+                            if price_min is not None and price < price_min:
+                                continue
+                            if price_max is not None and price > price_max:
+                                continue
 
-                # Filter by price if specified
-                if price is not None:
-                    if price_min is not None and price < price_min:
-                        continue
-                    if price_max is not None and price > price_max:
-                        continue
+                        product = ExaProduct(
+                            title=p.get("name", "Untitled"),
+                            url=p.get("url"),
+                            description=p.get("description"),
+                            image_url=p.get("image_url"),
+                            price=float(price) if price is not None else None,
+                            score=1.0 # Deep search doesn't return score in the same way for structured
+                        )
+                        products.append(product)
 
-                product = ExaProduct(
-                    title=result.title if hasattr(result, "title") else "Untitled",
-                    url=result.url,
-                    description=result.text[:200] if hasattr(result, "text") else None,
-                    image_url=self._extract_image_url(result),
-                    price=price,
-                    score=result.score if hasattr(result, "score") else None,
-                )
-                products.append(product)
+            # If structured output failed or returned nothing, fallback to standard results
+            if not products and hasattr(search_response, "results"):
+                for result in search_response.results:
+                    # Extract price from text if available
+                    price = self._extract_price(result.text) if hasattr(result, "text") else None
+
+                    # Filter by price if specified
+                    if price is not None:
+                        if price_min is not None and price < price_min:
+                            continue
+                        if price_max is not None and price > price_max:
+                            continue
+
+                    product = ExaProduct(
+                        title=result.title if hasattr(result, "title") else "Untitled",
+                        url=result.url,
+                        description=result.text[:200] if hasattr(result, "text") else None,
+                        image_url=self._extract_image_url(result),
+                        price=price,
+                        score=result.score if hasattr(result, "score") else None,
+                    )
+                    products.append(product)
 
             return products[:max_results]
 
         except Exception as e:
             print(f"Error searching Exa: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def _extract_price(self, text: str) -> Optional[float]:

@@ -1,35 +1,35 @@
 """Authentication utilities for JWT token management and password hashing."""
 
 import os
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 # Load JWT secret from environment variable
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError(
-        "JWT_SECRET_KEY environment variable must be set! "
-        "Add it to backend/.env file"
-    )
+    # Fallback for development if not set in .env
+    SECRET_KEY = "your-secret-key-change-in-production-hackathon-gift-portal-2024"
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days for hackathon convenience
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against a hashed password."""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    except Exception:
+        return False
 
 
 def get_password_hash(password: str) -> str:
     """Hash a password for storage."""
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

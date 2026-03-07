@@ -153,7 +153,7 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(database.get_d
     # Generate JWT token
     access_token = auth.create_access_token(data={"sub": str(new_user.id)})
 
-    user_response = schemas.UserResponse.from_orm(new_user)
+    user_response = schemas.UserResponse.model_validate(new_user)
     return schemas.Token(access_token=access_token, user=user_response)
 
 
@@ -178,14 +178,14 @@ def login(credentials: schemas.UserLogin, db: Session = Depends(database.get_db)
     # Generate JWT token
     access_token = auth.create_access_token(data={"sub": str(user.id)})
 
-    user_response = schemas.UserResponse.from_orm(user)
+    user_response = schemas.UserResponse.model_validate(user)
     return schemas.Token(access_token=access_token, user=user_response)
 
 
 @app.get("/auth/me", response_model=schemas.UserResponse)
 def get_current_user_info(current_user: models.User = Depends(get_current_user)):
     """Get current user information."""
-    return schemas.UserResponse.from_orm(current_user)
+    return schemas.UserResponse.model_validate(current_user)
 
 
 # ============================================================================
@@ -227,7 +227,7 @@ def create_event(
     db.add(participation)
     db.commit()
 
-    return schemas.EventResponse.from_orm(new_event)
+    return schemas.EventResponse.model_validate(new_event)
 
 
 @app.get("/api/events", response_model=List[schemas.EventResponse])
@@ -247,7 +247,7 @@ def list_my_events(
     # Convert to response objects with role and stats
     events_with_roles = []
     for event, role in participations:
-        event_dict = schemas.EventResponse.from_orm(event).dict()
+        event_dict = schemas.EventResponse.model_validate(event).model_dump()
         event_dict['role'] = role
 
         # Add participant count
@@ -287,7 +287,7 @@ def get_event(
     if not participation:
         raise HTTPException(status_code=403, detail="Not authorized to view this event")
 
-    return schemas.EventResponse.from_orm(event)
+    return schemas.EventResponse.model_validate(event)
 
 
 @app.post("/api/events/join", response_model=schemas.EventResponse)
@@ -319,7 +319,7 @@ def join_event(
         if existing.role != join_data.role:
             existing.role = join_data.role
             db.commit()
-        return schemas.EventResponse.from_orm(event)
+        return schemas.EventResponse.model_validate(event)
 
     # Create new participation
     participation = models.EventParticipant(
@@ -330,7 +330,7 @@ def join_event(
     db.add(participation)
     db.commit()
 
-    return schemas.EventResponse.from_orm(event)
+    return schemas.EventResponse.model_validate(event)
 
 
 @app.get("/api/events/{event_id}/wishlist-items", response_model=List[schemas.WishlistItemResponse])
@@ -394,7 +394,7 @@ def list_my_wishlists(
     wishlists = (
         db.query(models.Wishlist).filter(models.Wishlist.user_id == current_user.id).all()
     )
-    return [schemas.WishlistResponse.from_orm(w) for w in wishlists]
+    return [schemas.WishlistResponse.model_validate(w) for w in wishlists]
 
 
 @app.get("/api/wishlists/{wishlist_id}/items", response_model=List[schemas.WishlistItemResponse])
@@ -418,7 +418,7 @@ def list_wishlist_items(
         .all()
     )
 
-    return [schemas.WishlistItemResponse.from_orm(item) for item in items]
+    return [schemas.WishlistItemResponse.model_validate(item) for item in items]
 
 
 @app.post("/api/wishlist-items", response_model=schemas.WishlistItemResponse)
@@ -459,7 +459,7 @@ def create_wishlist_item(
 
     db.commit()
 
-    return schemas.WishlistItemResponse.from_orm(new_item)
+    return schemas.WishlistItemResponse.model_validate(new_item)
 
 
 @app.patch("/api/wishlist-items/{item_id}", response_model=schemas.WishlistItemResponse)
@@ -515,7 +515,7 @@ def update_wishlist_item(
     db.commit()
     db.refresh(item)
 
-    return schemas.WishlistItemResponse.from_orm(item)
+    return schemas.WishlistItemResponse.model_validate(item)
 
 
 @app.delete("/api/wishlist-items/{item_id}")
@@ -587,7 +587,7 @@ def save_sponsor_preferences(
         existing.target_age_groups = prefs.target_age_groups
         db.commit()
         db.refresh(existing)
-        return schemas.SponsorPreferenceResponse.from_orm(existing)
+        return schemas.SponsorPreferenceResponse.model_validate(existing)
     else:
         # Create new
         new_prefs = models.SponsorPreference(
@@ -601,7 +601,7 @@ def save_sponsor_preferences(
         db.add(new_prefs)
         db.commit()
         db.refresh(new_prefs)
-        return schemas.SponsorPreferenceResponse.from_orm(new_prefs)
+        return schemas.SponsorPreferenceResponse.model_validate(new_prefs)
 
 
 @app.get("/api/sponsor-preferences/{event_id}", response_model=schemas.SponsorPreferenceResponse)
@@ -623,7 +623,7 @@ def get_sponsor_preferences(
     if not prefs:
         raise HTTPException(status_code=404, detail="No preferences found")
 
-    return schemas.SponsorPreferenceResponse.from_orm(prefs)
+    return schemas.SponsorPreferenceResponse.model_validate(prefs)
 
 
 # ============================================================================
@@ -667,7 +667,7 @@ def claim_gift(
     db.commit()
     db.refresh(gift)
 
-    return schemas.GiftResponse.from_orm(gift)
+    return schemas.GiftResponse.model_validate(gift)
 
 
 @app.get("/api/gifts/my-gifts", response_model=List[schemas.GiftResponse])
@@ -677,7 +677,7 @@ def list_my_gifts(
 ):
     """List gifts claimed by current user."""
     gifts = db.query(models.Gift).filter(models.Gift.sponsor_id == current_user.id).all()
-    return [schemas.GiftResponse.from_orm(gift) for gift in gifts]
+    return [schemas.GiftResponse.model_validate(gift) for gift in gifts]
 
 
 # ============================================================================
