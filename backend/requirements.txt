@@ -7,4 +7,4 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 exa-py==1.0.9
-fastmcp==0.1.0
+# fastmcp - will be added when implementing MCP server

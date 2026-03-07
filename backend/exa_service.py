@@ -7,15 +7,75 @@ from exa_py import Exa
 from schemas import ExaProduct
 
 
+# Mock data for testing (saves API credits!)
+MOCK_PRODUCTS = {
+    "keyboard": [
+        ExaProduct(
+            title="Keychron K2 Wireless Mechanical Keyboard",
+            url="https://www.keychron.com/products/keychron-k2",
+            description="Hot-swappable wireless mechanical keyboard with RGB backlight",
+            image_url="https://example.com/k2.jpg",
+            price=89.0
+        ),
+        ExaProduct(
+            title="Royal Kludge RK61",
+            url="https://www.amazon.com/RK61",
+            description="Compact 60% mechanical keyboard with hot-swap sockets",
+            price=59.99
+        ),
+        ExaProduct(
+            title="Logitech G Pro X",
+            url="https://www.logitechg.com/en-us/products/gaming-keyboards/pro-x-gaming-keyboard.html",
+            description="Tenkeyless mechanical gaming keyboard",
+            price=149.99
+        ),
+    ],
+    "book": [
+        ExaProduct(
+            title="Clean Code by Robert C. Martin",
+            url="https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882",
+            description="A Handbook of Agile Software Craftsmanship",
+            price=35.0
+        ),
+        ExaProduct(
+            title="The Pragmatic Programmer",
+            url="https://pragprog.com/titles/tpp20/",
+            description="Your Journey To Mastery, 20th Anniversary Edition",
+            price=45.0
+        ),
+    ],
+    "default": [
+        ExaProduct(
+            title="Sample Product 1",
+            url="https://example.com/product1",
+            description="A sample product for testing",
+            price=50.0
+        ),
+        ExaProduct(
+            title="Sample Product 2",
+            url="https://example.com/product2",
+            description="Another sample product",
+            price=75.0
+        ),
+    ]
+}
+
+
 class ExaService:
     """Service for searching products using Exa API."""
 
     def __init__(self):
         """Initialize Exa client with API key from environment."""
-        api_key = os.getenv("EXA_API_KEY")
-        if not api_key:
-            raise ValueError("EXA_API_KEY environment variable not set")
-        self.client = Exa(api_key=api_key)
+        self.use_mock = os.getenv("MOCK_EXA", "false").lower() == "true"
+
+        if not self.use_mock:
+            api_key = os.getenv("EXA_API_KEY")
+            if not api_key:
+                raise ValueError("EXA_API_KEY environment variable not set")
+            self.client = Exa(api_key=api_key)
+        else:
+            print("⚠️  Using MOCK Exa responses (MOCK_EXA=true)")
+            self.client = None
 
     def search_products(
         self,
@@ -36,6 +96,10 @@ class ExaService:
         Returns:
             List of ExaProduct objects with product information
         """
+        # Use mock data if enabled (saves API credits!)
+        if self.use_mock:
+            return self._get_mock_products(query, max_results, price_min, price_max)
+
         try:
             # Enhance query with shopping context
             enhanced_query = f"shop buy purchase {query}"
@@ -136,6 +200,46 @@ class ExaService:
             return result.og_image
 
         return None
+
+    def _get_mock_products(
+        self,
+        query: str,
+        max_results: int,
+        price_min: Optional[float],
+        price_max: Optional[float],
+    ) -> List[ExaProduct]:
+        """
+        Get mock products for testing (saves API credits!).
+
+        Args:
+            query: Search query
+            max_results: Maximum number of results
+            price_min: Minimum price filter
+            price_max: Maximum price filter
+
+        Returns:
+            List of mock ExaProduct objects
+        """
+        # Determine which mock dataset to use based on query
+        query_lower = query.lower()
+        if "keyboard" in query_lower:
+            products = MOCK_PRODUCTS["keyboard"]
+        elif "book" in query_lower:
+            products = MOCK_PRODUCTS["book"]
+        else:
+            products = MOCK_PRODUCTS["default"]
+
+        # Filter by price if specified
+        filtered = []
+        for product in products:
+            if product.price is not None:
+                if price_min is not None and product.price < price_min:
+                    continue
+                if price_max is not None and product.price > price_max:
+                    continue
+            filtered.append(product)
+
+        return filtered[:max_results]
 
     def get_product_details(self, url: str) -> Optional[ExaProduct]:
         """
