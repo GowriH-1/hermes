@@ -57,8 +57,23 @@ export default function WishlistPage() {
 
   // Exa search
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchMinPrice, setSearchMinPrice] = useState<number | ''>('');
+  const [searchMaxPrice, setSearchMaxPrice] = useState<number | ''>('');
   const [searchResults, setSearchResults] = useState<ExaProduct[]>([]);
   const [searching, setSearching] = useState(false);
+
+  // Custom Item
+  const [showCustomAdd, setShowCustomAdd] = useState(false);
+  const [customItem, setCustomItem] = useState({
+    title: '',
+    description: '',
+    price_min: 0,
+    price_max: 0,
+    category: 'other',
+    priority: 3,
+    privacy_level: 'public',
+    url: '',
+  });
 
   // Editing
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
@@ -74,10 +89,21 @@ export default function WishlistPage() {
 
   // Load wishlist items when event changes
   useEffect(() => {
-    if (selectedEventId) {
-      loadWishlistItems(selectedEventId);
-    }
+    loadWishlistItems(selectedEventId);
   }, [selectedEventId]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        handleSearch();
+      } else if (searchQuery.trim().length === 0) {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, searchMinPrice, searchMaxPrice]);
 
   const loadParticipantEvents = async () => {
     try {
@@ -86,15 +112,20 @@ export default function WishlistPage() {
       const participantOnly = allEvents.filter((e: Event) => e.role === 'participant');
       setParticipantEvents(participantOnly);
 
-      // Auto-select event from URL param or first event
+      // Auto-select event from URL param or default to "All Items" (null)
       const eventIdFromUrl = searchParams.get('event');
-      if (eventIdFromUrl && participantOnly.find((e: Event) => e.id === Number(eventIdFromUrl))) {
+      if (eventIdFromUrl === 'all') {
+        setSelectedEventId(null);
+        setSelectedEvent(null);
+      } else if (eventIdFromUrl && participantOnly.find((e: Event) => e.id === Number(eventIdFromUrl))) {
         const eventId = Number(eventIdFromUrl);
         setSelectedEventId(eventId);
         setSelectedEvent(participantOnly.find((e: Event) => e.id === eventId) || null);
-      } else if (participantOnly.length > 0) {
-        setSelectedEventId(participantOnly[0].id);
-        setSelectedEvent(participantOnly[0]);
+      } else {
+        // Default to public wishlist if no events, or first event if exists
+        // User wants public wishlist to be prominent
+        setSelectedEventId(null);
+        setSelectedEvent(null);
       }
     } catch (error) {
       console.error('Error loading events:', error);
@@ -103,11 +134,21 @@ export default function WishlistPage() {
     }
   };
 
-  const loadWishlistItems = async (eventId: number) => {
+  const loadWishlistItems = async (eventId: number | null) => {
     try {
       setLoadingItems(true);
-      const items = await apiClient.getEventWishlistItems(eventId);
-      setWishlistItems(items);
+      if (eventId) {
+        const items = await apiClient.getEventWishlistItems(eventId);
+        setWishlistItems(items);
+      } else {
+        // Load all items from default wishlist
+        const wishlists = await apiClient.getMyWishlists();
+        const defaultWishlist = wishlists.find((w: any) => w.is_default) || wishlists[0];
+        if (defaultWishlist) {
+          const items = await apiClient.getWishlistItems(defaultWishlist.id);
+          setWishlistItems(items);
+        }
+      }
     } catch (error) {
       console.error('Error loading wishlist items:', error);
     } finally {
@@ -115,10 +156,16 @@ export default function WishlistPage() {
     }
   };
 
-  const handleEventSwitch = (event: Event) => {
-    setSelectedEventId(event.id);
-    setSelectedEvent(event);
-    setSearchParams({ event: event.id.toString() });
+  const handleEventSwitch = (event: Event | null) => {
+    if (event) {
+      setSelectedEventId(event.id);
+      setSelectedEvent(event);
+      setSearchParams({ event: event.id.toString() });
+    } else {
+      setSelectedEventId(null);
+      setSelectedEvent(null);
+      setSearchParams({ event: 'all' });
+    }
     setShowEventDropdown(false);
     setSearchResults([]); // Clear search results when switching events
   };
@@ -128,7 +175,12 @@ export default function WishlistPage() {
 
     try {
       setSearching(true);
-      const results = await apiClient.searchProducts(searchQuery, 10);
+      const results = await apiClient.searchProducts(
+        searchQuery, 
+        10, 
+        searchMinPrice !== '' ? searchMinPrice : undefined, 
+        searchMaxPrice !== '' ? searchMaxPrice : undefined
+      );
       setSearchResults(results.products || []);
     } catch (error) {
       console.error('Error searching products:', error);
@@ -138,11 +190,9 @@ export default function WishlistPage() {
   };
 
   const handleAddFromSearch = async (product: ExaProduct) => {
-    if (!selectedEventId) return;
-
     try {
       const wishlists = await apiClient.getMyWishlists();
-      const defaultWishlist = wishlists.find((w: any) => w.is_default);
+      const defaultWishlist = wishlists.find((w: any) => w.is_default) || wishlists[0];
 
       if (!defaultWishlist) {
         alert('Please create a wishlist first');
@@ -158,14 +208,55 @@ export default function WishlistPage() {
         price_min: product.price || 0,
         category: 'other',
         priority: 3,
-        privacy_level: 'event_only',
-        event_ids: [selectedEventId],
+        privacy_level: selectedEventId ? 'event_only' : 'public',
+        event_ids: selectedEventId ? [selectedEventId] : [],
       });
 
       setWishlistItems([...wishlistItems, newItem]);
       setSearchResults(searchResults.filter((p) => p.url !== product.url));
     } catch (error: any) {
       console.error('Error adding item:', error);
+      alert(error.response?.data?.detail || 'Failed to add item');
+    }
+  };
+
+  const handleCustomAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customItem.title) return;
+
+    try {
+      const wishlists = await apiClient.getMyWishlists();
+      const defaultWishlist = wishlists.find((w: any) => w.is_default) || wishlists[0];
+
+      if (!defaultWishlist) {
+        alert('Please create a wishlist first');
+        return;
+      }
+
+      // If price_max is 0 or less than price_min, set it to price_min
+      const finalPriceMax = customItem.price_max >= customItem.price_min ? customItem.price_max : customItem.price_min;
+
+      const newItem = await apiClient.createWishlistItem({
+        wishlist_id: defaultWishlist.id,
+        ...customItem,
+        price_max: finalPriceMax,
+        event_ids: selectedEventId ? [selectedEventId] : [],
+      });
+
+      setWishlistItems([...wishlistItems, newItem]);
+      setCustomItem({
+        title: '',
+        description: '',
+        price_min: 0,
+        price_max: 0,
+        category: 'other',
+        priority: 3,
+        privacy_level: selectedEventId ? 'event_only' : 'public',
+        url: '',
+      });
+      setShowCustomAdd(false);
+    } catch (error: any) {
+      console.error('Error adding custom item:', error);
       alert(error.response?.data?.detail || 'Failed to add item');
     }
   };
@@ -188,12 +279,10 @@ export default function WishlistPage() {
   };
 
   const handleUpdateItem = async (itemId: number, updates: Partial<WishlistItem>) => {
-    if (!selectedEventId) return;
-
     try {
       const updated = await apiClient.updateWishlistItem(itemId, {
         ...updates,
-        event_ids: [selectedEventId],
+        event_ids: selectedEventId ? [selectedEventId] : undefined,
       });
 
       setWishlistItems(wishlistItems.map((item) => (item.id === itemId ? updated : item)));
@@ -213,27 +302,6 @@ export default function WishlistPage() {
     );
   }
 
-  if (participantEvents.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="text-center py-12">
-            <div className="text-6xl mb-4">🎁</div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Events Yet</h2>
-            <p className="text-gray-600 mb-6">
-              Join or create an event as a participant to start building your wishlist!
-            </p>
-            <Link to="/dashboard">
-              <Button className="bg-primary-500 hover:bg-primary-600">
-                Go to Dashboard
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Top Navigation */}
@@ -248,15 +316,15 @@ export default function WishlistPage() {
               className="flex items-center justify-between w-full md:w-96 px-4 py-3 bg-white border-2 border-primary-200 rounded-lg hover:border-primary-400 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-xl">
-                  🎁
+                <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center text-xl">
+                  {selectedEvent ? '🎁' : '🌎'}
                 </div>
                 <div className="text-left">
                   <div className="font-semibold text-gray-900">
-                    {selectedEvent?.name || 'Select Event'}
+                    {selectedEvent?.name || 'Public Wishlist (All)'}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {selectedEvent?.participant_count || 0} members
+                    {selectedEvent ? `${selectedEvent.participant_count} members` : 'Global visibility'}
                   </div>
                 </div>
               </div>
@@ -277,6 +345,33 @@ export default function WishlistPage() {
                   className="absolute z-10 mt-2 w-full md:w-96 bg-white border-2 border-gray-200 rounded-lg shadow-xl"
                 >
                   <div className="p-2 max-h-96 overflow-y-auto">
+                    {/* General Wishlist Option */}
+                    <button
+                      onClick={() => handleEventSwitch(null)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors mb-1 ${
+                        selectedEventId === null
+                          ? 'bg-primary-50 border-2 border-primary-300'
+                          : 'hover:bg-gray-50 border-2 border-transparent'
+                      }`}
+                    >
+                      <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center text-xl">
+                        🌎
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900">
+                          Public Wishlist
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          All items, global visibility
+                        </div>
+                      </div>
+                      {selectedEventId === null && (
+                        <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
+                      )}
+                    </button>
+
+                    <div className="h-px bg-gray-100 my-1 mx-2" />
+
                     {participantEvents.map((event) => (
                       <button
                         key={event.id}
@@ -312,210 +407,335 @@ export default function WishlistPage() {
       </div>
 
       {/* Main Content */}
-      {selectedEvent && (
-        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left: My Wishlist */}
-            <Card className="h-fit">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>My Wishlist</span>
-                  <span className="text-sm font-normal text-gray-500">
-                    {wishlistItems.length} items
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {loadingItems ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                  </div>
-                ) : wishlistItems.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">
-                      No wishlist items yet. Search for products to add!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {wishlistItems.map((item) => (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        className={`border rounded-lg p-4 ${
-                          item.is_fulfilled ? 'bg-green-50 border-green-200' : 'bg-white'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                              {item.is_fulfilled && (
-                                <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
-                                  ✓ Claimed
-                                </span>
-                              )}
-                            </div>
-                            {item.description && (
-                              <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                            )}
-                            <div className="flex items-center gap-3 text-xs text-gray-500">
-                              <span className="font-medium text-primary-600">
-                                ${item.price_min}
-                                {item.price_max && ` - $${item.price_max}`}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`w-3 h-3 ${
-                                      i < item.priority
-                                        ? 'fill-yellow-400 text-yellow-400'
-                                        : 'text-gray-300'
-                                    }`}
-                                  />
-                                ))}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                {item.privacy_level === 'public' ? (
-                                  <Globe className="w-3 h-3" />
-                                ) : (
-                                  <Lock className="w-3 h-3" />
-                                )}
-                                {item.privacy_level}
-                              </span>
-                            </div>
-                          </div>
-                          {!item.is_fulfilled && (
-                            <div className="flex gap-2 ml-4">
-                              <button
-                                onClick={() => handleEditItem(item)}
-                                className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteItem(item.id)}
-                                className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        {item.url && (
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary-600 hover:underline mt-2 inline-block"
-                          >
-                            View Product →
-                          </a>
-                        )}
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Right: Add Items */}
-            <Card className="h-fit">
-              <CardHeader>
-                <CardTitle>Add Wishlist Items</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Search Bar */}
-                <div className="flex gap-2">
-                  <Input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="Search for products..."
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={handleSearch}
-                    disabled={searching || !searchQuery.trim()}
-                    className="bg-primary-500 hover:bg-primary-600"
-                  >
-                    {searching ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                    ) : (
-                      <Search className="w-5 h-5" />
-                    )}
-                  </Button>
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: My Wishlist */}
+          <Card className="h-fit">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{selectedEvent ? 'Event Wishlist' : 'My Public Wishlist'}</span>
+                <span className="text-sm font-normal text-gray-500">
+                  {wishlistItems.length} items
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {loadingItems ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
                 </div>
-
-                {/* Search Results */}
+              ) : wishlistItems.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-4">
+                    No wishlist items yet. Search for products or add one manually!
+                  </p>
+                </div>
+              ) : (
                 <div className="space-y-3">
-                  {searchResults.length === 0 && !searching && searchQuery && (
-                    <p className="text-center text-gray-500 py-8">
-                      No products found. Try a different search.
-                    </p>
-                  )}
-
-                  {searchResults.map((product, index) => (
+                  {wishlistItems.map((item) => (
                     <motion.div
-                      key={index}
+                      key={item.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
+                      exit={{ opacity: 0, x: -100 }}
+                      className={`border rounded-lg p-4 ${
+                        item.is_fulfilled ? 'bg-green-50 border-green-200' : 'bg-white'
+                      }`}
                     >
-                      <div className="flex items-start gap-3">
-                        {product.image && (
-                          <img
-                            src={product.image}
-                            alt={product.title}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 dark:text-white mb-1 truncate">
-                            {product.title}
-                          </h4>
-                          {product.summary && (
-                            <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                              {product.summary}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between">
-                            {product.price && (
-                              <span className="text-primary-600 font-medium">
-                                ${product.price}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                            {item.is_fulfilled && (
+                              <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                                ✓ Claimed
                               </span>
                             )}
-                            <Button
-                              size="sm"
-                              onClick={() => handleAddFromSearch(product)}
-                              className="bg-primary-500 hover:bg-primary-600"
-                            >
-                              <Plus className="w-4 h-4 mr-1" />
-                              Add
-                            </Button>
+                          </div>
+                          {item.description && (
+                            <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                          )}
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span className="font-medium text-primary-600">
+                              ${item.price_min}
+                              {item.price_max && ` - $${item.price_max}`}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < item.priority
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              {item.privacy_level === 'public' ? (
+                                <Globe className="w-3 h-3" />
+                              ) : (
+                                <Lock className="w-3 h-3" />
+                              )}
+                              {item.privacy_level}
+                            </span>
                           </div>
                         </div>
+                        {!item.is_fulfilled && (
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => handleEditItem(item)}
+                              className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
                       </div>
+                      {item.url && (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary-600 hover:underline mt-2 inline-block"
+                        >
+                          View Product →
+                        </a>
+                      )}
                     </motion.div>
                   ))}
                 </div>
+              )}
+            </CardContent>
+          </Card>
 
-                {/* Powered by Exa */}
-                {searchResults.length > 0 && (
-                  <div className="text-center text-xs text-gray-500 pt-4 border-t">
-                    Powered by <span className="font-semibold text-primary-600">Exa</span>
+          {/* Right: Add Items */}
+          <Card className="h-fit">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Add Items</span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowCustomAdd(!showCustomAdd)}
+                  className={showCustomAdd ? 'bg-primary-50 text-primary-600 border-primary-200' : ''}
+                >
+                  {showCustomAdd ? 'Search Instead' : 'Add Custom'}
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {showCustomAdd ? (
+                /* Custom Item Form */
+                <form onSubmit={handleCustomAdd} className="space-y-3 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Item Title *</label>
+                    <Input
+                      placeholder="e.g. Mechanical Keyboard"
+                      value={customItem.title}
+                      onChange={(e) => setCustomItem({ ...customItem, title: e.target.value })}
+                      required
+                    />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Price ($)</label>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={customItem.price_min}
+                        onChange={(e) => setCustomItem({ ...customItem, price_min: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Priority (1-5)</label>
+                      <select
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                        value={customItem.priority}
+                        onChange={(e) => setCustomItem({ ...customItem, priority: Number(e.target.value) })}
+                      >
+                        {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Privacy</label>
+                      <select
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                        value={customItem.privacy_level}
+                        onChange={(e) => setCustomItem({ ...customItem, privacy_level: e.target.value })}
+                      >
+                        <option value="public">Public</option>
+                        <option value="event_only">Event Only</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Category</label>
+                      <select
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                        value={customItem.category}
+                        onChange={(e) => setCustomItem({ ...customItem, category: e.target.value })}
+                      >
+                        <option value="other">Other</option>
+                        <option value="tech">Tech</option>
+                        <option value="books">Books</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="home">Home</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Description</label>
+                    <textarea
+                      className="w-full px-3 py-2 border rounded-lg text-sm min-h-[60px]"
+                      placeholder="Tell sponsors why you want this..."
+                      value={customItem.description}
+                      onChange={(e) => setCustomItem({ ...customItem, description: e.target.value })}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-primary-500 hover:bg-primary-600">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add to Wishlist
+                  </Button>
+                </form>
+              ) : (
+                <>
+                  {/* Search Bar */}
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Type to search via Exa..."
+                          className="pl-9 pr-4"
+                        />
+                        {searching && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Min $</span>
+                        <Input
+                          type="number"
+                          value={searchMinPrice}
+                          onChange={(e) => setSearchMinPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                          placeholder="0"
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="flex-1 flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Max $</span>
+                        <Input
+                          type="number"
+                          value={searchMaxPrice}
+                          onChange={(e) => setSearchMaxPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                          placeholder="Any"
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      {(searchQuery || searchMinPrice || searchMaxPrice) && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSearchQuery('');
+                            setSearchMinPrice('');
+                            setSearchMaxPrice('');
+                            setSearchResults([]);
+                          }}
+                          className="h-8 px-2 text-xs text-gray-500 hover:text-red-500"
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                  </div>
 
-          {/* Event Info Card */}
+                  {/* Search Results */}
+                  <div className="space-y-3">
+                    {searchResults.length === 0 && !searching && searchQuery && (
+                      <p className="text-center text-gray-500 py-8">
+                        No products found. Try a different search.
+                      </p>
+                    )}
+
+                    {searchResults.map((product, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start gap-3">
+                          {product.image && (
+                            <img
+                              src={product.image}
+                              alt={product.title}
+                              className="w-16 h-16 object-cover rounded"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 dark:text-white mb-1 truncate">
+                              {product.title}
+                            </h4>
+                            {product.summary && (
+                              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                                {product.summary}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between">
+                              {product.price && (
+                                <span className="text-primary-600 font-medium">
+                                  ${product.price}
+                                </span>
+                              )}
+                              <Button
+                                size="sm"
+                                onClick={() => handleAddFromSearch(product)}
+                                className="bg-primary-500 hover:bg-primary-600"
+                              >
+                                <Plus className="w-4 h-4 mr-1" />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Powered by Exa */}
+                  {searchResults.length > 0 && (
+                    <div className="text-center text-xs text-gray-500 pt-4 border-t">
+                      Powered by <span className="font-semibold text-primary-600">Exa</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Event Info Card - Only show for events */}
+        {selectedEvent && (
           <Card className="mt-6">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -534,8 +754,8 @@ export default function WishlistPage() {
               </div>
             </CardContent>
           </Card>
-        </main>
-      )}
+        )}
+      </main>
 
       {/* Edit Modal */}
       <AnimatePresence>
