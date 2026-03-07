@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import ParticipantEventView from './pages/ParticipantEventView';
+import WishlistPage from './pages/WishlistPage';
 import SponsorEventView from './pages/SponsorEventView';
 
 const queryClient = new QueryClient({
@@ -76,10 +76,10 @@ function App() {
               }
             />
             <Route
-              path="/events/:eventId/participant"
+              path="/wishlist"
               element={
                 <PrivateRoute>
-                  <ParticipantEventView />
+                  <WishlistPage />
                 </PrivateRoute>
               }
             />
@@ -92,7 +92,7 @@ function App() {
               }
             />
             {/* Redirect old routes */}
-            <Route path="/wishlist" element={<Navigate to="/dashboard" />} />
+            <Route path="/events/:eventId/participant" element={<Navigate to="/wishlist" />} />
             <Route path="/events/:eventId" element={<Navigate to="/dashboard" />} />
             <Route path="/sponsor/:eventId" element={<Navigate to="/dashboard" />} />
           </Routes>

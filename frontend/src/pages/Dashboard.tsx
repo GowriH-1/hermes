@@ -129,7 +129,7 @@ export default function Dashboard() {
                     {participantEvents.map((event: any) => (
                       <Link
                         key={event.id}
-                        to={`/events/${event.id}/participant`}
+                        to={`/wishlist?event=${event.id}`}
                         className="block"
                       >
                         <Card className="hover:shadow-lg transition-all hover:scale-[1.02] h-full border-2 border-transparent hover:border-blue-200">
