@@ -8,3 +8,5 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 exa-py==1.0.9
 # fastmcp - will be added when implementing MCP server
+pytest==7.4.3
+httpx==0.25.2
