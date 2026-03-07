@@ -109,7 +109,7 @@ sponsor_preferences (
 
 ## Core Features (MVP)
 
-### Must-Have (80% of time)
+### Must-Have (P0) (80% of time)
 
 #### 1. Beautiful Product Discovery (Exa Integration) ⭐⭐⭐
 - Search bar with real-time Exa product suggestions
@@ -144,6 +144,29 @@ sponsor_preferences (
 - Quick signup (email + password)
 - JWT tokens
 - No email verification
+
+### High Priority (P1) (Glow Up Enhancements)
+
+#### 1. Sponsor Branding Agent (A2UI) ⭐⭐⭐
+- **Concept**: The Sponsor's Agent uses A2UI to "skin" the interface dynamically.
+- **Implementation**:
+    - **Dynamic Theming**: SurfaceUpdate pushes primary colors, logos, and typography to match the active sponsor (e.g., "Google" blue vs. "Vercel" black).
+    - **Direct-to-Website Bridge**: Render a custom "Gift Gallery" using A2UI components pulling live data from the sponsor's site or Exa search filtered to their products.
+    - **Agent Pitch**: "I'm the TechCorp Agent. Based on your wishlist, I think you'd love these items..." rendered in a branded, interactive card.
+
+#### 2. Exa-Powered "Sponsor Intelligence" Dashboard ⭐⭐⭐
+- **Concept**: Market Analyst agent for the sponsor.
+- **Implementation**:
+    - **Insight Scan**: Agent uses Exa to scan all participant wishlists and interests in the event.
+    - **Sponsor Insights View**: "20% of hackers are looking for 4k monitors. Based on your $200 budget, here are 3 top-rated options from Exa that would make you the most popular sponsor."
+    - **Visual**: Recharts-powered "Interest Map" showing crowd demand vs. sponsor supply.
+
+#### 3. Interactive "Gift Unwrapping" Experience ⭐⭐⭐
+- **Concept**: Make the finality of a gift a "moment" rather than just a notification.
+- **Implementation**:
+    - **Gift Box Surface**: When a sponsor claims a gift, the participant receives an A2UI "Gift Box".
+    - **Interactive Reveal**: "Scratch to reveal" or "Solve a mini-puzzle" (using Framer Motion) to see which sponsor fulfilled it.
+    - **Personalized Message**: Explanation Agent generates a personalized message explaining why they chose that specific person.
 
 ### Nice-to-Have (if time permits)
 - Gift claiming with status tracking
@@ -180,6 +203,17 @@ sponsor_preferences (
 - For high-scoring matches (>70), generate explanation
 - Use natural language to explain why it's a good match
 - Show demographic fit, budget alignment, priority
+
+### Agent 4: Branding Agent (A2UI Specialist) - NEW (P1)
+**Role**: Dynamic UI skinning and custom surfaces
+- Manages the visual "skin" of the sponsor zone
+- Injects branded A2UI components (Gift Gallery, Pitch cards)
+
+### Agent 5: Intelligence Agent (Market Analyst) - NEW (P1)
+**Role**: Strategic advisor for sponsors
+- Scans event-wide wishlists via Exa
+- Identifies trends and high-impact gift opportunities
+- Provides data-driven recommendations to sponsors
 
 ---
 
