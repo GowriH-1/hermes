@@ -358,6 +358,7 @@ class ExaSearchRequest(BaseModel):
     max_results: int = Field(default=10, le=20)
     price_min: Optional[float] = None
     price_max: Optional[float] = None
+    search_type: str = "deep"  # "instant" (keyword) or "deep" (neural)
 
 
 class ExaSearchResponse(BaseModel):

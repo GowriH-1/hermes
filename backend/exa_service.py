@@ -115,6 +115,16 @@ class ExaService:
     ) -> List[ExaProduct]:
         """
         Search for products using Exa API.
+
+        Args:
+            query: Search query (e.g., "mechanical keyboard")
+            max_results: Maximum number of results to return
+            price_min: Minimum price filter (optional)
+            price_max: Maximum price filter (optional)
+            search_type: "instant" (lowest latency) or "deep" (neural)
+
+        Returns:
+            List of ExaProduct objects with product information
         """
         if self.use_mock:
             return self._get_mock_products(query, max_results, price_min, price_max)
