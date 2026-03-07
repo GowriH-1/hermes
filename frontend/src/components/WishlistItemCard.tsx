@@ -54,7 +54,7 @@ const WishlistItemCard: React.FC<WishlistItemCardProps> = ({ item, events, onUpd
   };
 
   return (
-    <Card className="overflow-hidden bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-purple-200 transition-all group">
+    <Card className="overflow-hidden bg-white dark:bg-[#0a0a0a] border-gray-100 dark:border-gray-700 hover:border-purple-200 transition-all group">
       <div className="flex flex-col sm:flex-row">
         <div className="w-full sm:w-32 h-32 bg-gray-50 flex-shrink-0">
           {item.image_url ? (

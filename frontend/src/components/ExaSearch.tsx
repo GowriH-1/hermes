@@ -79,7 +79,7 @@ const ExaSearch: React.FC<ExaSearchProps> = ({ onAddToWishlist, onAddCustomItem 
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
+      <div className="bg-white dark:bg-[#0a0a0a] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
           <Input

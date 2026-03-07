@@ -14,7 +14,7 @@ export function TopNav() {
   };
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
+    <nav className="bg-white dark:bg-[#0a0a0a] shadow-sm border-b dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Left: Logo + Main Nav */}

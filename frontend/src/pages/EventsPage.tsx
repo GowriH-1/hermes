@@ -44,7 +44,7 @@ export default function EventsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-black">
         <TopNav />
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -54,7 +54,7 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       <TopNav />
 
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">

@@ -108,7 +108,7 @@ export default function Register() {
                 name="age_group"
                 value={formData.age_group}
                 onChange={handleChange}
-                className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-700 dark:bg-[#0a0a0a]"
               >
                 <option value="">Select age group</option>
                 <option value="18-24">18-24</option>

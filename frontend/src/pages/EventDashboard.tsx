@@ -5,7 +5,7 @@ export default function EventDashboard() {
   const { eventId } = useParams();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-6">
       <Card>
         <CardHeader>
           <CardTitle>Event Dashboard</CardTitle>

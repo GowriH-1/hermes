@@ -235,17 +235,17 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Top Navigation */}
       <TopNav />
 
       {/* Event Selector */}
-      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+      <div className="bg-white dark:bg-[#0a0a0a] border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="relative">
             <button
               onClick={() => setShowEventDropdown(!showEventDropdown)}
-              className="flex items-center justify-between w-full md:w-96 px-4 py-3 bg-white dark:bg-gray-800 border-2 border-primary-200 dark:border-primary-700 rounded-lg hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
+              className="flex items-center justify-between w-full md:w-96 px-4 py-3 bg-white dark:bg-[#0a0a0a] border-2 border-primary-200 dark:border-primary-700 rounded-lg hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-xl">
@@ -274,7 +274,7 @@ export default function WishlistPage() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute z-10 mt-2 w-full md:w-96 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-xl"
+                  className="absolute z-10 mt-2 w-full md:w-96 bg-white dark:bg-[#0a0a0a] border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-xl"
                 >
                   <div className="p-2 max-h-96 overflow-y-auto">
                     {participantEvents.map((event) => (
@@ -345,7 +345,7 @@ export default function WishlistPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -100 }}
                         className={`border rounded-lg p-4 ${
-                          item.is_fulfilled ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                          item.is_fulfilled ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-white dark:bg-[#0a0a0a] border-gray-200 dark:border-gray-700'
                         }`}
                       >
                         <div className="flex items-start justify-between">
@@ -465,7 +465,7 @@ export default function WishlistPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow"
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-[#0a0a0a] hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start gap-3">
                         {product.image && (
@@ -553,7 +553,7 @@ export default function WishlistPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-md w-full p-6"
+                className="bg-white dark:bg-[#0a0a0a] rounded-lg shadow-2xl max-w-md w-full p-6"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Item</h3>
