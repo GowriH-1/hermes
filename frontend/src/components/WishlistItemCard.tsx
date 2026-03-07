@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/Card';
+import { Card, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Star, Trash2, Globe, Lock, ExternalLink, Calendar } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -20,19 +20,13 @@ export interface WishlistItem {
   event_ids: number[];
 }
 
-interface Event {
-  id: number;
-  name: string;
-}
-
 interface WishlistItemCardProps {
   item: WishlistItem;
-  events: Event[];
   onUpdate: (itemId: number, updates: any) => Promise<void>;
   onDelete: (itemId: number) => Promise<void>;
 }
 
-const WishlistItemCard: React.FC<WishlistItemCardProps> = ({ item, events, onUpdate, onDelete }) => {
+const WishlistItemCard: React.FC<WishlistItemCardProps> = ({ item, onUpdate, onDelete }) => {
   const renderPriority = () => (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((i) => (
@@ -48,10 +42,6 @@ const WishlistItemCard: React.FC<WishlistItemCardProps> = ({ item, events, onUpd
       ))}
     </div>
   );
-
-  const getEventName = (eventId: number) => {
-    return events.find(e => e.id === eventId)?.name || 'Unknown Event';
-  };
 
   return (
     <Card className="overflow-hidden bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-purple-200 transition-all group">
@@ -93,15 +83,15 @@ const WishlistItemCard: React.FC<WishlistItemCardProps> = ({ item, events, onUpd
                   {renderPriority()}
                 </div>
                 
-                {(item.price_min !== null || item.price_max !== null) && (
+                {(item.price_min != null || item.price_max != null) && (
                   <div className="text-sm font-semibold text-purple-600">
-                    {item.price_min !== null && item.price_max !== null ? (
+                    {item.price_min != null && item.price_max != null ? (
                       item.price_min === item.price_max ? (
                         `$${item.price_min.toFixed(2)}`
                       ) : (
                         `$${item.price_min.toFixed(2)} - $${item.price_max.toFixed(2)}`
                       )
-                    ) : item.price_min !== null ? (
+                    ) : item.price_min != null ? (
                       `$${item.price_min.toFixed(2)}+`
                     ) : (
                       `Up to $${item.price_max?.toFixed(2)}`

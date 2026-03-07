@@ -14,15 +14,9 @@ interface Wishlist {
   is_default: boolean;
 }
 
-interface Event {
-  id: number;
-  name: string;
-}
-
 export default function WishlistBuilder() {
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
   const [items, setItems] = useState<WishlistItem[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
@@ -38,10 +32,6 @@ export default function WishlistBuilder() {
         const wishlistItems = await apiClient.getWishlistItems(defaultWishlist.id);
         setItems(wishlistItems);
       }
-
-      // 3. Get user's events
-      const myEvents = await apiClient.getMyEvents();
-      setEvents(myEvents);
     } catch (error) {
       console.error('Error loading wishlist data:', error);
     } finally {
@@ -149,7 +139,7 @@ export default function WishlistBuilder() {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard">
-              <Button variant="ghost" size="icon" className="text-gray-500">
+              <Button variant="ghost" size="sm" className="text-gray-500">
                 <ChevronLeft size={24} />
               </Button>
             </Link>
@@ -204,7 +194,6 @@ export default function WishlistBuilder() {
                   <WishlistItemCard
                     key={item.id}
                     item={item}
-                    events={events}
                     onUpdate={handleUpdateItem}
                     onDelete={handleDeleteItem}
                   />
