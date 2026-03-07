@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2026-03-07 16:39:39,233 INFO sqlalchemy.engine.Engine BEGIN (implicit)
 2026-03-07 16:39:39,233 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("users")
 2026-03-07 16:39:39,233 INFO sqlalchemy.engine.Engine [raw sql] ()
@@ -934,3 +935,343 @@ WHERE wishlist_items.wishlist_id = ?
 INFO:     127.0.0.1:50380 - "GET /api/wishlists/1/items HTTP/1.1" 200 OK
 Searching Exa (deep) for: Finding the best coat to buy
 INFO:     127.0.0.1:50380 - "POST /api/search/products HTTP/1.1" 200 OK
+=======
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("users")
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("events")
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("event_participants")
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("wishlists")
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("wishlist_items")
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("wishlist_item_events")
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("gifts")
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("sponsor_preferences")
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-03-07 16:27:18,683 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     Started server process [38627]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-03-07 16:27:32,039 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:27:32,040 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:27:32,040 INFO sqlalchemy.engine.Engine [generated in 0.00017s] (1, 1, 0)
+2026-03-07 16:27:32,040 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:27:32,041 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:27:32,041 INFO sqlalchemy.engine.Engine [cached since 0.0006915s ago] (1, 1, 0)
+2026-03-07 16:27:32,042 INFO sqlalchemy.engine.Engine SELECT events.id AS events_id, events.name AS events_name, events.description AS events_description, events.event_type AS events_event_type, events.event_date AS events_event_date, events.created_by AS events_created_by, events.invite_code AS events_invite_code, events.website_url AS events_website_url, events.brand_info AS events_brand_info, events.created_at AS events_created_at, event_participants.role AS event_participants_role 
+FROM events JOIN event_participants ON events.id = event_participants.event_id 
+WHERE event_participants.user_id = ?
+2026-03-07 16:27:32,042 INFO sqlalchemy.engine.Engine [generated in 0.00012s] (1,)
+2026-03-07 16:27:32,044 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ?) AS anon_1
+2026-03-07 16:27:32,044 INFO sqlalchemy.engine.Engine [generated in 0.00005s] (1,)
+2026-03-07 16:27:32,046 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.user_id = ?
+2026-03-07 16:27:32,046 INFO sqlalchemy.engine.Engine [generated in 0.00012s] (1,)
+2026-03-07 16:27:32,046 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ?) AS anon_1
+2026-03-07 16:27:32,046 INFO sqlalchemy.engine.Engine [cached since 0.001608s ago] (3,)
+2026-03-07 16:27:32,047 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49422 - "GET /api/wishlists HTTP/1.1" 200 OK
+2026-03-07 16:27:32,047 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49421 - "GET /api/events HTTP/1.1" 200 OK
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine [cached since 0.008505s ago] (1, 1, 0)
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine [cached since 0.008889s ago] (1, 1, 0)
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.user_id = ?
+2026-03-07 16:27:32,049 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:27:32,050 INFO sqlalchemy.engine.Engine [cached since 0.004065s ago] (1,)
+2026-03-07 16:27:32,050 INFO sqlalchemy.engine.Engine SELECT events.id AS events_id, events.name AS events_name, events.description AS events_description, events.event_type AS events_event_type, events.event_date AS events_event_date, events.created_by AS events_created_by, events.invite_code AS events_invite_code, events.website_url AS events_website_url, events.brand_info AS events_brand_info, events.created_at AS events_created_at, event_participants.role AS event_participants_role 
+FROM events JOIN event_participants ON events.id = event_participants.event_id 
+WHERE event_participants.user_id = ?
+2026-03-07 16:27:32,050 INFO sqlalchemy.engine.Engine [cached since 0.009495s ago] (1, 1, 0)
+2026-03-07 16:27:32,050 INFO sqlalchemy.engine.Engine [cached since 0.00745s ago] (1,)
+2026-03-07 16:27:32,050 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ?) AS anon_1
+2026-03-07 16:27:32,050 INFO sqlalchemy.engine.Engine [cached since 0.005782s ago] (1,)
+2026-03-07 16:27:32,050 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ?) AS anon_1
+2026-03-07 16:27:32,050 INFO sqlalchemy.engine.Engine [cached since 0.006048s ago] (3,)
+2026-03-07 16:27:32,051 INFO sqlalchemy.engine.Engine ROLLBACK
+2026-03-07 16:27:32,051 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:27:32,051 INFO sqlalchemy.engine.Engine [generated in 0.00011s] (1, 1, 0)
+INFO:     127.0.0.1:49421 - "GET /api/wishlists HTTP/1.1" 200 OK
+2026-03-07 16:27:32,052 INFO sqlalchemy.engine.Engine SELECT wishlist_items.id AS wishlist_items_id, wishlist_items.wishlist_id AS wishlist_items_wishlist_id, wishlist_items.title AS wishlist_items_title, wishlist_items.description AS wishlist_items_description, wishlist_items.url AS wishlist_items_url, wishlist_items.image_url AS wishlist_items_image_url, wishlist_items.price_min AS wishlist_items_price_min, wishlist_items.price_max AS wishlist_items_price_max, wishlist_items.category AS wishlist_items_category, wishlist_items.priority AS wishlist_items_priority, wishlist_items.privacy_level AS wishlist_items_privacy_level, wishlist_items.exa_metadata AS wishlist_items_exa_metadata, wishlist_items.is_fulfilled AS wishlist_items_is_fulfilled, wishlist_items.created_at AS wishlist_items_created_at 
+FROM wishlist_items 
+WHERE wishlist_items.wishlist_id = ?
+2026-03-07 16:27:32,052 INFO sqlalchemy.engine.Engine [generated in 0.00007s] (1,)
+2026-03-07 16:27:32,052 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49422 - "GET /api/events HTTP/1.1" 200 OK
+2026-03-07 16:27:32,053 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49424 - "GET /api/wishlists/1/items HTTP/1.1" 200 OK
+2026-03-07 16:27:32,060 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:27:32,060 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:27:32,060 INFO sqlalchemy.engine.Engine [cached since 0.01946s ago] (1, 1, 0)
+2026-03-07 16:27:32,060 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:27:32,060 INFO sqlalchemy.engine.Engine [cached since 0.009236s ago] (1, 1, 0)
+2026-03-07 16:27:32,060 INFO sqlalchemy.engine.Engine SELECT wishlist_items.id AS wishlist_items_id, wishlist_items.wishlist_id AS wishlist_items_wishlist_id, wishlist_items.title AS wishlist_items_title, wishlist_items.description AS wishlist_items_description, wishlist_items.url AS wishlist_items_url, wishlist_items.image_url AS wishlist_items_image_url, wishlist_items.price_min AS wishlist_items_price_min, wishlist_items.price_max AS wishlist_items_price_max, wishlist_items.category AS wishlist_items_category, wishlist_items.priority AS wishlist_items_priority, wishlist_items.privacy_level AS wishlist_items_privacy_level, wishlist_items.exa_metadata AS wishlist_items_exa_metadata, wishlist_items.is_fulfilled AS wishlist_items_is_fulfilled, wishlist_items.created_at AS wishlist_items_created_at 
+FROM wishlist_items 
+WHERE wishlist_items.wishlist_id = ?
+2026-03-07 16:27:32,060 INFO sqlalchemy.engine.Engine [cached since 0.008294s ago] (1,)
+2026-03-07 16:27:32,061 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49424 - "GET /api/wishlists/1/items HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: coat
+INFO:     127.0.0.1:49424 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49444 - "OPTIONS /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: shoes
+INFO:     127.0.0.1:49444 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: shoes
+INFO:     127.0.0.1:49444 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: shoe
+Searching Exa (deep/neural) for: shoes
+INFO:     127.0.0.1:49446 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49444 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: bottle
+INFO:     127.0.0.1:49463 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: wat
+Searching Exa (deep/neural) for: watt
+Searching Exa (deep/neural) for: wat
+Searching Exa (deep/neural) for: water 
+INFO:     127.0.0.1:49463 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49467 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: water bottle
+INFO:     127.0.0.1:49470 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49473 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49467 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: water bottle (under $50.0)
+INFO:     127.0.0.1:49467 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: water bottle
+INFO:     127.0.0.1:49480 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: car
+INFO:     127.0.0.1:49480 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: phone 
+Searching Exa (deep/neural) for: phone co
+Searching Exa (deep/neural) for: phone cov
+Searching Exa (deep/neural) for: phone cover
+INFO:     127.0.0.1:49500 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49503 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49506 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49509 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: phone cover
+INFO:     127.0.0.1:49509 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: phone cover
+INFO:     127.0.0.1:49509 - "POST /api/search/products HTTP/1.1" 200 OK
+2026-03-07 16:29:41,070 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:29:41,071 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:29:41,071 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:29:41,071 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:29:41,071 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1, 1, 0)
+2026-03-07 16:29:41,071 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1, 1, 0)
+2026-03-07 16:29:41,072 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.user_id = ?
+2026-03-07 16:29:41,073 INFO sqlalchemy.engine.Engine SELECT events.id AS events_id, events.name AS events_name, events.description AS events_description, events.event_type AS events_event_type, events.event_date AS events_event_date, events.created_by AS events_created_by, events.invite_code AS events_invite_code, events.website_url AS events_website_url, events.brand_info AS events_brand_info, events.created_at AS events_created_at, event_participants.role AS event_participants_role 
+FROM events JOIN event_participants ON events.id = event_participants.event_id 
+WHERE event_participants.user_id = ?
+2026-03-07 16:29:41,073 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1,)
+2026-03-07 16:29:41,073 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1,)
+2026-03-07 16:29:41,074 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ?) AS anon_1
+2026-03-07 16:29:41,074 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1,)
+2026-03-07 16:29:41,075 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ?) AS anon_1
+2026-03-07 16:29:41,075 INFO sqlalchemy.engine.Engine [cached since 129s ago] (3,)
+2026-03-07 16:29:41,075 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49531 - "GET /api/wishlists HTTP/1.1" 200 OK
+2026-03-07 16:29:41,076 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49530 - "GET /api/events HTTP/1.1" 200 OK
+2026-03-07 16:29:41,077 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:29:41,077 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:29:41,077 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1, 1, 0)
+2026-03-07 16:29:41,078 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:29:41,078 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:29:41,078 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.user_id = ?
+2026-03-07 16:29:41,078 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1, 1, 0)
+2026-03-07 16:29:41,078 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1,)
+2026-03-07 16:29:41,078 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:29:41,078 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:29:41,079 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1, 1, 0)
+2026-03-07 16:29:41,079 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:29:41,079 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1, 1, 0)
+2026-03-07 16:29:41,079 INFO sqlalchemy.engine.Engine SELECT wishlist_items.id AS wishlist_items_id, wishlist_items.wishlist_id AS wishlist_items_wishlist_id, wishlist_items.title AS wishlist_items_title, wishlist_items.description AS wishlist_items_description, wishlist_items.url AS wishlist_items_url, wishlist_items.image_url AS wishlist_items_image_url, wishlist_items.price_min AS wishlist_items_price_min, wishlist_items.price_max AS wishlist_items_price_max, wishlist_items.category AS wishlist_items_category, wishlist_items.priority AS wishlist_items_priority, wishlist_items.privacy_level AS wishlist_items_privacy_level, wishlist_items.exa_metadata AS wishlist_items_exa_metadata, wishlist_items.is_fulfilled AS wishlist_items_is_fulfilled, wishlist_items.created_at AS wishlist_items_created_at 
+FROM wishlist_items 
+WHERE wishlist_items.wishlist_id = ?
+2026-03-07 16:29:41,079 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1,)
+2026-03-07 16:29:41,079 INFO sqlalchemy.engine.Engine ROLLBACK
+2026-03-07 16:29:41,079 INFO sqlalchemy.engine.Engine SELECT events.id AS events_id, events.name AS events_name, events.description AS events_description, events.event_type AS events_event_type, events.event_date AS events_event_date, events.created_by AS events_created_by, events.invite_code AS events_invite_code, events.website_url AS events_website_url, events.brand_info AS events_brand_info, events.created_at AS events_created_at, event_participants.role AS event_participants_role 
+FROM events JOIN event_participants ON events.id = event_participants.event_id 
+WHERE event_participants.user_id = ?
+2026-03-07 16:29:41,080 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1,)
+INFO:     127.0.0.1:49531 - "GET /api/wishlists HTTP/1.1" 200 OK
+2026-03-07 16:29:41,080 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ?) AS anon_1
+2026-03-07 16:29:41,080 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1,)
+2026-03-07 16:29:41,081 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ?) AS anon_1
+2026-03-07 16:29:41,081 INFO sqlalchemy.engine.Engine [cached since 129s ago] (3,)
+2026-03-07 16:29:41,081 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49530 - "GET /api/wishlists/1/items HTTP/1.1" 200 OK
+2026-03-07 16:29:41,081 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49534 - "GET /api/events HTTP/1.1" 200 OK
+2026-03-07 16:29:41,086 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:29:41,086 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:29:41,086 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1, 1, 0)
+2026-03-07 16:29:41,087 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:29:41,087 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1, 1, 0)
+2026-03-07 16:29:41,087 INFO sqlalchemy.engine.Engine SELECT wishlist_items.id AS wishlist_items_id, wishlist_items.wishlist_id AS wishlist_items_wishlist_id, wishlist_items.title AS wishlist_items_title, wishlist_items.description AS wishlist_items_description, wishlist_items.url AS wishlist_items_url, wishlist_items.image_url AS wishlist_items_image_url, wishlist_items.price_min AS wishlist_items_price_min, wishlist_items.price_max AS wishlist_items_price_max, wishlist_items.category AS wishlist_items_category, wishlist_items.priority AS wishlist_items_priority, wishlist_items.privacy_level AS wishlist_items_privacy_level, wishlist_items.exa_metadata AS wishlist_items_exa_metadata, wishlist_items.is_fulfilled AS wishlist_items_is_fulfilled, wishlist_items.created_at AS wishlist_items_created_at 
+FROM wishlist_items 
+WHERE wishlist_items.wishlist_id = ?
+2026-03-07 16:29:41,087 INFO sqlalchemy.engine.Engine [cached since 129s ago] (1,)
+2026-03-07 16:29:41,087 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49534 - "GET /api/wishlists/1/items HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: phone cover
+INFO:     127.0.0.1:49534 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: phone cover
+INFO:     127.0.0.1:49535 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: phone cover
+INFO:     127.0.0.1:49535 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: phone 
+
+INFO:     127.0.0.1:49535 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49572 - "OPTIONS /api/events/1/wishlist-items HTTP/1.1" 200 OK
+2026-03-07 16:30:09,348 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:30:09,348 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:30:09,348 INFO sqlalchemy.engine.Engine [cached since 157.3s ago] (1, 1, 0)
+2026-03-07 16:30:09,350 INFO sqlalchemy.engine.Engine SELECT event_participants.id AS event_participants_id, event_participants.event_id AS event_participants_event_id, event_participants.user_id AS event_participants_user_id, event_participants.role AS event_participants_role, event_participants.joined_at AS event_participants_joined_at 
+FROM event_participants 
+WHERE event_participants.event_id = ? AND event_participants.user_id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:30:09,350 INFO sqlalchemy.engine.Engine [generated in 0.00029s] (1, 1, 1, 0)
+2026-03-07 16:30:09,352 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.user_id = ? AND wishlists.is_default = 1
+ LIMIT ? OFFSET ?
+2026-03-07 16:30:09,352 INFO sqlalchemy.engine.Engine [generated in 0.00031s] (1, 1, 0)
+2026-03-07 16:30:09,354 INFO sqlalchemy.engine.Engine SELECT wishlist_items.id AS wishlist_items_id, wishlist_items.wishlist_id AS wishlist_items_wishlist_id, wishlist_items.title AS wishlist_items_title, wishlist_items.description AS wishlist_items_description, wishlist_items.url AS wishlist_items_url, wishlist_items.image_url AS wishlist_items_image_url, wishlist_items.price_min AS wishlist_items_price_min, wishlist_items.price_max AS wishlist_items_price_max, wishlist_items.category AS wishlist_items_category, wishlist_items.priority AS wishlist_items_priority, wishlist_items.privacy_level AS wishlist_items_privacy_level, wishlist_items.exa_metadata AS wishlist_items_exa_metadata, wishlist_items.is_fulfilled AS wishlist_items_is_fulfilled, wishlist_items.created_at AS wishlist_items_created_at 
+FROM wishlist_items JOIN wishlist_item_events ON wishlist_items.id = wishlist_item_events.wishlist_item_id 
+WHERE wishlist_items.wishlist_id = ? AND wishlist_item_events.event_id = ?
+2026-03-07 16:30:09,354 INFO sqlalchemy.engine.Engine [generated in 0.00018s] (1, 1)
+2026-03-07 16:30:09,355 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49572 - "GET /api/events/1/wishlist-items HTTP/1.1" 200 OK
+2026-03-07 16:30:11,183 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:30:11,183 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:30:11,183 INFO sqlalchemy.engine.Engine [cached since 159.1s ago] (1, 1, 0)
+2026-03-07 16:30:11,184 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.user_id = ?
+2026-03-07 16:30:11,184 INFO sqlalchemy.engine.Engine [cached since 159.1s ago] (1,)
+2026-03-07 16:30:11,185 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49572 - "GET /api/wishlists HTTP/1.1" 200 OK
+2026-03-07 16:30:11,192 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-03-07 16:30:11,192 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.username AS users_username, users.age_group AS users_age_group, users.interests AS users_interests, users.created_at AS users_created_at 
+FROM users 
+WHERE users.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:30:11,192 INFO sqlalchemy.engine.Engine [cached since 159.2s ago] (1, 1, 0)
+2026-03-07 16:30:11,193 INFO sqlalchemy.engine.Engine SELECT wishlists.id AS wishlists_id, wishlists.user_id AS wishlists_user_id, wishlists.name AS wishlists_name, wishlists.description AS wishlists_description, wishlists.is_default AS wishlists_is_default, wishlists.created_at AS wishlists_created_at 
+FROM wishlists 
+WHERE wishlists.id = ?
+ LIMIT ? OFFSET ?
+2026-03-07 16:30:11,193 INFO sqlalchemy.engine.Engine [cached since 159.1s ago] (1, 1, 0)
+2026-03-07 16:30:11,194 INFO sqlalchemy.engine.Engine SELECT wishlist_items.id AS wishlist_items_id, wishlist_items.wishlist_id AS wishlist_items_wishlist_id, wishlist_items.title AS wishlist_items_title, wishlist_items.description AS wishlist_items_description, wishlist_items.url AS wishlist_items_url, wishlist_items.image_url AS wishlist_items_image_url, wishlist_items.price_min AS wishlist_items_price_min, wishlist_items.price_max AS wishlist_items_price_max, wishlist_items.category AS wishlist_items_category, wishlist_items.priority AS wishlist_items_priority, wishlist_items.privacy_level AS wishlist_items_privacy_level, wishlist_items.exa_metadata AS wishlist_items_exa_metadata, wishlist_items.is_fulfilled AS wishlist_items_is_fulfilled, wishlist_items.created_at AS wishlist_items_created_at 
+FROM wishlist_items 
+WHERE wishlist_items.wishlist_id = ?
+2026-03-07 16:30:11,194 INFO sqlalchemy.engine.Engine [cached since 159.1s ago] (1,)
+2026-03-07 16:30:11,195 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:49572 - "GET /api/wishlists/1/items HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: bottle
+INFO:     127.0.0.1:49574 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: winter 
+Searching Exa (deep/neural) for: winter ja
+Searching Exa (deep/neural) for: winter jacket
+INFO:     127.0.0.1:49585 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49588 - "POST /api/search/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49591 - "POST /api/search/products HTTP/1.1" 200 OK
+Searching Exa (deep/neural) for: winter jacket (under $100.0)
+INFO:     127.0.0.1:49591 - "POST /api/search/products HTTP/1.1" 200 OK
+>>>>>>> 9ac72a8 (wishlist fixing)

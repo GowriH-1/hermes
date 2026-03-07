@@ -34,7 +34,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS middleware - allow specific origins
+# CORS middleware - allow frontend origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -225,7 +225,7 @@ def create_event(
     while db.query(models.Event).filter(models.Event.invite_code == invite_code).first():
         invite_code = generate_invite_code()
 
-    # Extract brand info if website URL provided
+    # Extract brand info if website URL is provided
     brand_info = {}
     if event_data.website_url:
         try:
@@ -652,17 +652,28 @@ def delete_wishlist_item(
     db: Session = Depends(database.get_db),
 ):
     """Delete a wishlist item."""
+    print(f"DEBUG: Attempting to delete item {item_id} for user {current_user.id}")
     item = db.query(models.WishlistItem).filter(models.WishlistItem.id == item_id).first()
     if not item:
+        print(f"DEBUG: Item {item_id} not found")
         raise HTTPException(status_code=404, detail="Item not found")
 
     # Verify ownership
     wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == item.wishlist_id).first()
     if wishlist.user_id != current_user.id:
+        print(f"DEBUG: User {current_user.id} not authorized to delete item {item_id} (owner: {wishlist.user_id})")
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    db.delete(item)
-    db.commit()
+    try:
+        db.delete(item)
+        db.commit()
+        print(f"DEBUG: Item {item_id} successfully deleted")
+    except Exception as e:
+        db.rollback()
+        print(f"DEBUG: Error deleting item {item_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     return {"status": "success"}
 

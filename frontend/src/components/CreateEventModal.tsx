@@ -282,6 +282,23 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   />
                 </div>
 
+                {/* Website URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Sponsor Website URL (Optional)
+                  </label>
+                  <Input
+                    type="url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="https://example.com"
+                    className="w-full"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    💡 We'll use this to automatically style your event based on your brand.
+                  </p>
+                </div>
+
                 {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

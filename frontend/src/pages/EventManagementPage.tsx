@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Plus, Users, Copy, Check, LogOut, Crown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiClient } from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
 import { TopNav } from '../components/TopNav';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';

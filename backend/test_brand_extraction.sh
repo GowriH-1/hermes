@@ -10,17 +10,17 @@ echo "1. Getting Token..."
 # Try login, if fails, register
 TOKEN=$(curl -s -X POST "$API/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"test_restored@example.com","password":"password123"}' \
+  -d '{"email":"test@example.com","password":"password123"}' \
   | grep -o '"access_token":"[^"]*' | cut -d'"' -f4)
 
 if [ -z "$TOKEN" ]; then
   curl -s -X POST "$API/auth/register" \
     -H "Content-Type: application/json" \
-    -d '{"email":"test_restored@example.com","password":"password123","full_name":"Test User","username":"testuser_restored"}'
+    -d '{"email":"test@example.com","password":"password123","full_name":"Test User","username":"testuser"}'
   
   TOKEN=$(curl -s -X POST "$API/auth/login" \
     -H "Content-Type: application/json" \
-    -d '{"email":"test_restored@example.com","password":"password123"}' \
+    -d '{"email":"test@example.com","password":"password123"}' \
     | grep -o '"access_token":"[^"]*' | cut -d'"' -f4)
 fi
 
@@ -36,7 +36,7 @@ echo "2. Creating Event with Website URL (google.com)..."
 EVENT=$(curl -s -X POST "$API/api/events" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Google Hackathon Restored","event_type":"hackathon","website_url":"https://google.com"}')
+  -d '{"name":"Google Hackathon","event_type":"hackathon","website_url":"https://google.com"}')
 
 echo "$EVENT" | grep -q '"website_url":"https://google.com"' && echo "✓ Website URL saved" || { echo "✗ Website URL not saved"; echo "$EVENT"; exit 1; }
 echo "$EVENT" | grep -q '"brand_info":{' && echo "✓ Brand info extracted" || { echo "✗ Brand info missing"; echo "$EVENT"; exit 1; }
@@ -44,5 +44,5 @@ echo "$EVENT" | grep -q '"primary_color":"#4285F4"' && echo "✓ Correct brand c
 
 echo ""
 echo "========================================="
-echo "✓ Brand extraction feature is restored and working!"
+echo "✓ Brand extraction feature is working!"
 echo "========================================="

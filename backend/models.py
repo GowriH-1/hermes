@@ -59,6 +59,8 @@ class Event(Base):
     brand_info = Column(JSON, default=dict)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     invite_code = Column(String, unique=True, index=True, nullable=False)
+    website_url = Column(String)
+    brand_info = Column(JSON, default=dict)  # Stores colors, logo, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

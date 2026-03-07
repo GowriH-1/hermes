@@ -8,6 +8,11 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: {
+          primary: "var(--brand-primary)",
+          "primary-hover": "var(--brand-primary-hover)",
+          secondary: "var(--brand-secondary)",
+        },
         primary: {
           DEFAULT: "#10a37f", // OpenAI Green
           50: "#e6f7f2",

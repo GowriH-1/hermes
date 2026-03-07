@@ -86,6 +86,8 @@ class EventResponse(BaseModel):
     brand_info: Optional[dict]
     created_by: int
     invite_code: str
+    website_url: Optional[str] = None
+    brand_info: Optional[dict] = None
     created_at: datetime
     participant_count: Optional[int] = None
     role: Optional[str] = None  # User's role in this event (participant/sponsor)

@@ -820,7 +820,7 @@ export default function WishlistPage() {
 
                   <div className="flex gap-4 pt-4">
                     <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-xs border-2 border-gray-100 dark:border-gray-800 dark:text-gray-400">Cancel</Button>
-                    <Button type="submit" className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-xs bg-primary-500 hover:bg-primary-600 shadow-lg shadow-primary-200 dark:shadow-none text-white">Save Changes</Button>
+                    <Button type="submit" className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-xs bg-brand-primary hover:bg-brand-primary-hover shadow-lg shadow-brand-primary/20 dark:shadow-none text-white">Save Changes</Button>
                   </div>
                 </form>
               </motion.div>
