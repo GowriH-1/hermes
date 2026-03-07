@@ -61,7 +61,7 @@ export default function EventsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Events</h1>
-          <p className="text-gray-600 dark:text-gray-400">Events where you're participating</p>
+          <p className="text-gray-600 dark:text-gray-300">Events where you're participating</p>
         </div>
 
         {/* Quick Action */}

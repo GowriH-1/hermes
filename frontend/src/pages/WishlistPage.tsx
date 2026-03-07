@@ -220,7 +220,7 @@ export default function WishlistPage() {
           <CardContent className="text-center py-12">
             <div className="text-6xl mb-4">🎁</div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Events Yet</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               Join or create an event as a participant to start building your wishlist!
             </p>
             <Link to="/dashboard">
@@ -255,13 +255,13 @@ export default function WishlistPage() {
                   <div className="font-semibold text-gray-900 dark:text-white">
                     {selectedEvent?.name || 'Select Event'}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">
+                  <div className="text-xs text-gray-500 dark:text-gray-300 dark:text-gray-300">
                     {selectedEvent?.participant_count || 0} members
                   </div>
                 </div>
               </div>
               <ChevronDown
-                className={`w-5 h-5 text-gray-400 dark:text-gray-500 dark:text-gray-400 transition-transform ${
+                className={`w-5 h-5 text-gray-400 dark:text-gray-400 dark:text-gray-300 transition-transform ${
                   showEventDropdown ? 'rotate-180' : ''
                 }`}
               />
@@ -294,7 +294,7 @@ export default function WishlistPage() {
                           <div className="font-semibold text-gray-900 dark:text-white truncate">
                             {event.name}
                           </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">
+                          <div className="text-xs text-gray-500 dark:text-gray-300 dark:text-gray-300">
                             {event.event_type.replace('_', ' ')} • {event.participant_count} members
                           </div>
                         </div>
@@ -332,7 +332,7 @@ export default function WishlistPage() {
                   </div>
                 ) : wishlistItems.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-gray-500 dark:text-gray-400 mb-4">
+                    <p className="text-gray-500 dark:text-gray-300 mb-4">
                       No wishlist items yet. Search for products to add!
                     </p>
                   </div>
@@ -359,7 +359,7 @@ export default function WishlistPage() {
                               )}
                             </div>
                             {item.description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{item.description}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{item.description}</p>
                             )}
                             <div className="flex items-center gap-3 text-xs text-gray-500">
                               <span className="font-medium text-primary-600">
@@ -454,7 +454,7 @@ export default function WishlistPage() {
                 {/* Search Results */}
                 <div className="space-y-3">
                   {searchResults.length === 0 && !searching && searchQuery && (
-                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                    <p className="text-center text-gray-500 dark:text-gray-300 py-8">
                       No products found. Try a different search.
                     </p>
                   )}
@@ -480,7 +480,7 @@ export default function WishlistPage() {
                             {product.title}
                           </h4>
                           {product.summary && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
                               {product.summary}
                             </p>
                           )}
@@ -507,7 +507,7 @@ export default function WishlistPage() {
 
                 {/* Powered by Exa */}
                 {searchResults.length > 0 && (
-                  <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-4 border-t">
+                  <div className="text-center text-xs text-gray-500 dark:text-gray-300 pt-4 border-t">
                     Powered by <span className="font-semibold text-primary-600">Exa</span>
                   </div>
                 )}
@@ -521,12 +521,12 @@ export default function WishlistPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Event Details</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                     {selectedEvent.description || 'No description'}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Invite Code</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-300 mb-1">Invite Code</p>
                   <code className="px-3 py-1.5 bg-primary-50 text-primary-700 font-mono font-bold rounded border border-primary-200">
                     {selectedEvent.invite_code}
                   </code>
@@ -559,7 +559,7 @@ export default function WishlistPage() {
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Item</h3>
                   <button
                     onClick={() => setShowEditModal(false)}
-                    className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X className="w-5 h-5" />
                   </button>

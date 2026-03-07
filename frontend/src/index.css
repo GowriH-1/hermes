@@ -13,7 +13,7 @@
 
   body {
     margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -23,6 +23,15 @@
   /* OpenAI-style dark mode with true black */
   .dark body {
     background-color: #000000;
+  }
+
+  /* OpenAI-style green accents for links and interactive elements */
+  .dark a:not(.no-underline) {
+    color: #10a37f;
+  }
+
+  .dark a:not(.no-underline):hover {
+    color: #1ab382;
   }
 
   @media (prefers-color-scheme: dark) {

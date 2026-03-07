@@ -21,7 +21,7 @@ export function TopNav() {
           <div className="flex items-center space-x-8">
             {/* Logo */}
             <Link to="/wishlist" className="flex items-center">
-              <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">Gift Portal</h1>
+              <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-500">Gift Portal</h1>
             </Link>
 
             {/* Main Navigation */}
@@ -30,8 +30,8 @@ export function TopNav() {
                 to="/wishlist"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   isActive('/wishlist')
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                    : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -44,8 +44,8 @@ export function TopNav() {
                 to="/events"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   location.pathname === '/events'
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-green-100 text-green-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                    : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -58,8 +58,8 @@ export function TopNav() {
                 to="/event-management"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   isActive('/event-management')
-                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-purple-100 text-purple-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                    : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -72,7 +72,7 @@ export function TopNav() {
 
           {/* Right: User Menu */}
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:block">
+            <span className="text-sm text-gray-700 dark:text-gray-200 hidden sm:block">
               {user?.full_name}
             </span>
             <Button
@@ -100,8 +100,8 @@ export function TopNav() {
             to="/wishlist"
             className={`flex-1 px-2 py-2 rounded-lg font-medium text-center transition-colors ${
               isActive('/wishlist')
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ? 'bg-blue-100 text-blue-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
             }`}
           >
             <div className="flex items-center justify-center gap-1">
@@ -114,8 +114,8 @@ export function TopNav() {
             to="/events"
             className={`flex-1 px-2 py-2 rounded-lg font-medium text-center transition-colors ${
               location.pathname === '/events'
-                ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ? 'bg-green-100 text-green-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
             }`}
           >
             <div className="flex items-center justify-center gap-1">
@@ -128,8 +128,8 @@ export function TopNav() {
             to="/event-management"
             className={`flex-1 px-2 py-2 rounded-lg font-medium text-center transition-colors ${
               isActive('/event-management')
-                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ? 'bg-purple-100 text-purple-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
             }`}
           >
             <div className="flex items-center justify-center gap-1">
