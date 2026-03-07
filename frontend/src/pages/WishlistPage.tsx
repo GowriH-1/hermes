@@ -220,7 +220,7 @@ export default function WishlistPage() {
           <CardContent className="text-center py-12">
             <div className="text-6xl mb-4">🎁</div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Events Yet</h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               Join or create an event as a participant to start building your wishlist!
             </p>
             <Link to="/dashboard">
@@ -240,28 +240,28 @@ export default function WishlistPage() {
       <TopNav />
 
       {/* Event Selector */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="relative">
             <button
               onClick={() => setShowEventDropdown(!showEventDropdown)}
-              className="flex items-center justify-between w-full md:w-96 px-4 py-3 bg-white border-2 border-primary-200 rounded-lg hover:border-primary-400 transition-colors"
+              className="flex items-center justify-between w-full md:w-96 px-4 py-3 bg-white dark:bg-gray-800 border-2 border-primary-200 dark:border-primary-700 rounded-lg hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-xl">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-xl">
                   🎁
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold text-gray-900">
+                  <div className="font-semibold text-gray-900 dark:text-white">
                     {selectedEvent?.name || 'Select Event'}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">
                     {selectedEvent?.participant_count || 0} members
                   </div>
                 </div>
               </div>
               <ChevronDown
-                className={`w-5 h-5 text-gray-400 transition-transform ${
+                className={`w-5 h-5 text-gray-400 dark:text-gray-500 dark:text-gray-400 transition-transform ${
                   showEventDropdown ? 'rotate-180' : ''
                 }`}
               />
@@ -274,7 +274,7 @@ export default function WishlistPage() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute z-10 mt-2 w-full md:w-96 bg-white border-2 border-gray-200 rounded-lg shadow-xl"
+                  className="absolute z-10 mt-2 w-full md:w-96 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-xl"
                 >
                   <div className="p-2 max-h-96 overflow-y-auto">
                     {participantEvents.map((event) => (
@@ -283,18 +283,18 @@ export default function WishlistPage() {
                         onClick={() => handleEventSwitch(event)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
                           selectedEventId === event.id
-                            ? 'bg-primary-50 border-2 border-primary-300'
-                            : 'hover:bg-gray-50 border-2 border-transparent'
+                            ? 'bg-primary-50 dark:bg-primary-900/30 border-2 border-primary-300 dark:border-primary-600'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-2 border-transparent'
                         }`}
                       >
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-xl">
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-xl">
                           🎁
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 truncate">
+                          <div className="font-semibold text-gray-900 dark:text-white truncate">
                             {event.name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">
                             {event.event_type.replace('_', ' ')} • {event.participant_count} members
                           </div>
                         </div>
@@ -332,7 +332,7 @@ export default function WishlistPage() {
                   </div>
                 ) : wishlistItems.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
                       No wishlist items yet. Search for products to add!
                     </p>
                   </div>
@@ -345,13 +345,13 @@ export default function WishlistPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -100 }}
                         className={`border rounded-lg p-4 ${
-                          item.is_fulfilled ? 'bg-green-50 border-green-200' : 'bg-white'
+                          item.is_fulfilled ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                         }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                              <h4 className="font-semibold text-gray-900 dark:text-white">{item.title}</h4>
                               {item.is_fulfilled && (
                                 <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
                                   ✓ Claimed
@@ -359,7 +359,7 @@ export default function WishlistPage() {
                               )}
                             </div>
                             {item.description && (
-                              <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{item.description}</p>
                             )}
                             <div className="flex items-center gap-3 text-xs text-gray-500">
                               <span className="font-medium text-primary-600">
@@ -454,7 +454,7 @@ export default function WishlistPage() {
                 {/* Search Results */}
                 <div className="space-y-3">
                   {searchResults.length === 0 && !searching && searchQuery && (
-                    <p className="text-center text-gray-500 py-8">
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">
                       No products found. Try a different search.
                     </p>
                   )}
@@ -465,7 +465,7 @@ export default function WishlistPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start gap-3">
                         {product.image && (
@@ -480,7 +480,7 @@ export default function WishlistPage() {
                             {product.title}
                           </h4>
                           {product.summary && (
-                            <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
                               {product.summary}
                             </p>
                           )}
@@ -507,7 +507,7 @@ export default function WishlistPage() {
 
                 {/* Powered by Exa */}
                 {searchResults.length > 0 && (
-                  <div className="text-center text-xs text-gray-500 pt-4 border-t">
+                  <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-4 border-t">
                     Powered by <span className="font-semibold text-primary-600">Exa</span>
                   </div>
                 )}
@@ -520,13 +520,13 @@ export default function WishlistPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">Event Details</h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Event Details</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {selectedEvent.description || 'No description'}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500 mb-1">Invite Code</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Invite Code</p>
                   <code className="px-3 py-1.5 bg-primary-50 text-primary-700 font-mono font-bold rounded border border-primary-200">
                     {selectedEvent.invite_code}
                   </code>
@@ -553,13 +553,13 @@ export default function WishlistPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-md w-full p-6"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold">Edit Item</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Item</h3>
                   <button
                     onClick={() => setShowEditModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X className="w-5 h-5" />
                   </button>
