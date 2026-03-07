@@ -44,6 +44,11 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   };
 
   const handleClose = () => {
+    // If event was created, refresh the events list
+    if (createdEvent) {
+      onSuccess();
+    }
+
     // Reset all state
     setName('');
     setDescription('');
@@ -83,7 +88,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
       // Store created event to show invite code in UI
       setCreatedEvent(eventData);
-      onSuccess();
+      // Don't call onSuccess() here - wait for user to click "Done"
     } catch (err: any) {
       console.error('Event creation error:', err.response?.data);
 
@@ -120,16 +125,16 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-[#0a0a0a] rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b">
-                <h2 className="text-2xl font-bold text-gray-900">
+              <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {createdEvent ? 'Event Created!' : 'Create New Event'}
                 </h2>
                 <button
                   onClick={handleClose}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -148,21 +153,21 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                   {/* Event Details */}
                   <div className="text-center">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                       {createdEvent.name}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       {EVENT_TYPES.find((t) => t.value === createdEvent.event_type)?.label || createdEvent.event_type}
                     </p>
                   </div>
 
                   {/* Invite Code Display */}
-                  <div className="bg-gradient-to-br from-primary-50 to-purple-50 border-2 border-primary-200 rounded-lg p-6">
-                    <p className="text-sm font-medium text-gray-700 mb-3 text-center">
+                  <div className="bg-gradient-to-br from-primary-50 to-purple-50 dark:from-primary-950/30 dark:to-purple-950/30 border-2 border-primary-200 dark:border-primary-700 rounded-lg p-6">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">
                       Share this invite code:
                     </p>
                     <div className="flex items-center justify-center gap-3">
-                      <code className="text-3xl font-bold text-primary-600 tracking-wider">
+                      <code className="text-3xl font-bold text-primary-600 dark:text-primary-400 tracking-wider">
                         {createdEvent.invite_code}
                       </code>
                       <button
@@ -187,8 +192,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   </div>
 
                   {/* Info */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-700">
+                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
                       💡 Participants and sponsors can join your event using this invite code.
                       You can find it anytime in your event dashboard.
                     </p>
@@ -206,14 +211,14 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 /* Creation Form */
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded">
                     {error}
                   </div>
                 )}
 
                 {/* Event Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Event Name <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -228,13 +233,13 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                 {/* Event Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Event Type
                   </label>
                   <select
                     value={eventType}
                     onChange={(e) => setEventType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-[#1a1a1a] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     {EVENT_TYPES.map((type) => (
                       <option key={type.value} value={type.value}>
@@ -246,7 +251,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                 {/* Event Date */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Event Date (Optional)
                   </label>
                   <Input
@@ -259,7 +264,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Description (Optional)
                   </label>
                   <textarea
@@ -267,13 +272,13 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Tell participants about this event..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-[#1a1a1a] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                   />
                 </div>
 
                 {/* Info */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-700">
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
                     💡 After creating the event, you'll receive an invite code to share with participants and sponsors.
                   </p>
                 </div>

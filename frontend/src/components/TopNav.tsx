@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Gift, Calendar, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Button } from './ui/Button';
@@ -35,7 +35,7 @@ export function TopNav() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">🎁</span>
+                  <Gift className="w-4 h-4" />
                   <span>Wishlist</span>
                 </div>
               </Link>
@@ -49,7 +49,7 @@ export function TopNav() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">📅</span>
+                  <Calendar className="w-4 h-4" />
                   <span>Events</span>
                 </div>
               </Link>
@@ -63,7 +63,7 @@ export function TopNav() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">💝</span>
+                  <Sparkles className="w-4 h-4" />
                   <span>Event Management</span>
                 </div>
               </Link>
@@ -105,7 +105,7 @@ export function TopNav() {
             }`}
           >
             <div className="flex items-center justify-center gap-1">
-              <span>🎁</span>
+              <Gift className="w-4 h-4" />
               <span className="text-xs">Wishlist</span>
             </div>
           </Link>
@@ -119,7 +119,7 @@ export function TopNav() {
             }`}
           >
             <div className="flex items-center justify-center gap-1">
-              <span>📅</span>
+              <Calendar className="w-4 h-4" />
               <span className="text-xs">Events</span>
             </div>
           </Link>
@@ -133,7 +133,7 @@ export function TopNav() {
             }`}
           >
             <div className="flex items-center justify-center gap-1">
-              <span>💝</span>
+              <Sparkles className="w-4 h-4" />
               <span className="text-xs">Manage</span>
             </div>
           </Link>

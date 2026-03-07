@@ -218,11 +218,11 @@ def create_event(
     db.commit()
     db.refresh(new_event)
 
-    # Auto-join creator as participant
+    # Auto-join creator as sponsor (they're giving gifts)
     participation = models.EventParticipant(
         event_id=new_event.id,
         user_id=current_user.id,
-        role="participant",
+        role="sponsor",
     )
     db.add(participation)
     db.commit()
@@ -315,11 +315,11 @@ def join_event(
     )
 
     if existing:
-        # Update role if different
-        if existing.role != join_data.role:
-            existing.role = join_data.role
-            db.commit()
-        return schemas.EventResponse.model_validate(event)
+        # Return error if already a member
+        raise HTTPException(
+            status_code=400,
+            detail=f"You are already part of this event as a {existing.role}"
+        )
 
     # Create new participation
     participation = models.EventParticipant(
@@ -331,6 +331,45 @@ def join_event(
     db.commit()
 
     return schemas.EventResponse.model_validate(event)
+
+
+@app.delete("/api/events/{event_id}/leave")
+def leave_event(
+    event_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Leave an event."""
+    # Check if event exists
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    # Find participation
+    participation = (
+        db.query(models.EventParticipant)
+        .filter(
+            models.EventParticipant.event_id == event_id,
+            models.EventParticipant.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if not participation:
+        raise HTTPException(status_code=404, detail="You are not part of this event")
+
+    # Check if user created the event and is leaving as sponsor
+    if event.created_by == current_user.id and participation.role == "sponsor":
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot leave as sponsor for an event you created. You can leave as a participant if you joined in that role."
+        )
+
+    # Delete participation
+    db.delete(participation)
+    db.commit()
+
+    return {"message": "Successfully left the event"}
 
 
 @app.get("/api/events/{event_id}/wishlist-items", response_model=List[schemas.WishlistItemResponse])

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, Copy, Check, LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { apiClient } from '../services/api';
 import { TopNav } from '../components/TopNav';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { JoinEventModal } from '../components/JoinEventModal';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface Event {
   id: number;
@@ -23,6 +25,8 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [confirmLeave, setConfirmLeave] = useState<{ eventId: number; eventName: string } | null>(null);
 
   useEffect(() => {
     loadEvents();
@@ -39,6 +43,26 @@ export default function EventsPage() {
       console.error('Error loading events:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyInviteCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const handleLeaveEvent = async () => {
+    if (!confirmLeave) return;
+
+    try {
+      await apiClient.leaveEvent(confirmLeave.eventId);
+      toast.success(`Successfully left "${confirmLeave.eventName}"`);
+      loadEvents(); // Refresh the list
+      setConfirmLeave(null);
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to leave event');
+      setConfirmLeave(null);
     }
   };
 
@@ -68,10 +92,10 @@ export default function EventsPage() {
         <div className="mb-8">
           <Button
             onClick={() => setShowJoinModal(true)}
-            className="h-20 w-full md:w-auto px-8 bg-green-500 hover:bg-green-600 text-lg"
+            className="bg-primary-500 hover:bg-primary-600 py-3"
           >
-            <Plus className="w-6 h-6 mr-2" />
-            Join Event with Invite Code
+            <Plus className="w-4 h-4 mr-2" />
+            Join Event
           </Button>
         </div>
 
@@ -87,11 +111,10 @@ export default function EventsPage() {
                 Join an event with an invite code to start building your wishlist!
               </p>
               <Button
-                size="lg"
                 onClick={() => setShowJoinModal(true)}
-                className="bg-green-500 hover:bg-green-600"
+                className="bg-primary-500 hover:bg-primary-600"
               >
-                <Plus className="w-5 h-5 mr-2" />
+                <Plus className="w-4 h-4 mr-2" />
                 Join Event
               </Button>
             </CardContent>
@@ -141,10 +164,30 @@ export default function EventsPage() {
 
                     {/* Invite Code */}
                     <div className="mb-4">
-                      <p className="text-xs text-gray-500 mb-1">Invite Code</p>
-                      <code className="px-3 py-1.5 bg-gray-100 text-gray-900 font-mono font-bold rounded text-sm">
-                        {event.invite_code}
-                      </code>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Invite Code</p>
+                      <div className="flex items-center gap-2">
+                        <code className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono font-bold rounded text-sm flex-1">
+                          {event.invite_code}
+                        </code>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleCopyInviteCode(event.invite_code);
+                          }}
+                          className={`p-2 rounded-lg transition-all ${
+                            copiedCode === event.invite_code
+                              ? 'bg-green-500 text-white'
+                              : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                          }`}
+                          title="Copy invite code"
+                        >
+                          {copiedCode === event.invite_code ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Actions */}
@@ -154,6 +197,17 @@ export default function EventsPage() {
                           🎁 Manage Wishlist
                         </Button>
                       </Link>
+                      <Button
+                        variant="outline"
+                        className="w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setConfirmLeave({ eventId: event.id, eventName: event.name });
+                        }}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Leave Event
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -168,6 +222,19 @@ export default function EventsPage() {
         isOpen={showJoinModal}
         onClose={() => setShowJoinModal(false)}
         onSuccess={loadEvents}
+        participantOnly={true}
+      />
+
+      {/* Confirm Leave Dialog */}
+      <ConfirmDialog
+        isOpen={!!confirmLeave}
+        title="Leave Event"
+        message={`Are you sure you want to leave "${confirmLeave?.eventName}"? You will no longer be able to manage your wishlist for this event.`}
+        confirmText="Leave Event"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={handleLeaveEvent}
+        onCancel={() => setConfirmLeave(null)}
       />
     </div>
   );

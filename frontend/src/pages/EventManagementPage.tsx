@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, Copy, Check, LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { apiClient } from '../services/api';
 import { TopNav } from '../components/TopNav';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { CreateEventModal } from '../components/CreateEventModal';
 import { JoinEventModal } from '../components/JoinEventModal';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface Event {
   id: number;
@@ -25,6 +27,8 @@ export default function EventManagementPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [confirmLeave, setConfirmLeave] = useState<{ eventId: number; eventName: string } | null>(null);
 
   useEffect(() => {
     loadEvents();
@@ -41,6 +45,26 @@ export default function EventManagementPage() {
       console.error('Error loading events:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyInviteCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const handleLeaveEvent = async () => {
+    if (!confirmLeave) return;
+
+    try {
+      await apiClient.leaveEvent(confirmLeave.eventId);
+      toast.success(`Successfully left "${confirmLeave.eventName}" as a sponsor`);
+      loadEvents(); // Refresh the list
+      setConfirmLeave(null);
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to leave event');
+      setConfirmLeave(null);
     }
   };
 
@@ -70,17 +94,17 @@ export default function EventManagementPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="h-20 bg-primary-500 hover:bg-primary-600 text-lg"
+            className="bg-primary-500 hover:bg-primary-600 py-3"
           >
-            <Plus className="w-6 h-6 mr-2" />
+            <Plus className="w-4 h-4 mr-2" />
             Create New Event
           </Button>
           <Button
             onClick={() => setShowJoinModal(true)}
             variant="outline"
-            className="h-20 text-lg"
+            className="py-3"
           >
-            <Users className="w-6 h-6 mr-2" />
+            <Users className="w-4 h-4 mr-2" />
             Join as Sponsor
           </Button>
         </div>
@@ -115,10 +139,10 @@ export default function EventManagementPage() {
                   Create an event or join one as a sponsor to start matching with participants and giving gifts!
                 </p>
                 <div className="flex gap-4 justify-center">
-                  <Button onClick={() => setShowCreateModal(true)} size="lg">
+                  <Button onClick={() => setShowCreateModal(true)}>
                     Create Event
                   </Button>
-                  <Button onClick={() => setShowJoinModal(true)} variant="outline" size="lg">
+                  <Button onClick={() => setShowJoinModal(true)} variant="outline">
                     Join as Sponsor
                   </Button>
                 </div>
@@ -133,20 +157,19 @@ export default function EventManagementPage() {
                   animate={{ opacity: 1, y: 0 }}
                   whileHover={{ scale: 1.02 }}
                 >
-                  <Link to={`/events/${event.id}/sponsor`}>
-                    <Card className="h-full hover:shadow-lg transition-all border-2 border-transparent hover:border-purple-200">
-                      <CardContent className="p-6">
+                  <Card className="h-full hover:shadow-lg transition-all border-2 border-transparent hover:border-purple-200 dark:border-transparent dark:hover:border-purple-700">
+                    <CardContent className="p-6">
                         {/* Header */}
                         <div className="mb-4">
                           <div className="flex items-start justify-between mb-2">
-                            <h3 className="font-bold text-xl text-gray-900 flex-1">
+                            <h3 className="font-bold text-xl text-gray-900 dark:text-white flex-1">
                               {event.name}
                             </h3>
-                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full whitespace-nowrap ml-2">
+                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 text-xs font-medium rounded-full whitespace-nowrap ml-2">
                               Sponsor
                             </span>
                           </div>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {event.event_type.replace('_', ' ')}
                             {event.event_date &&
                               ` • ${new Date(event.event_date).toLocaleDateString()}`}
@@ -161,21 +184,67 @@ export default function EventManagementPage() {
                         )}
 
                         {/* Stats */}
-                        <div className="flex items-center justify-between pt-4 border-t">
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4 pb-4 border-b dark:border-gray-700">
+                          <span className="flex items-center gap-1">
                             <Users className="w-4 h-4" />
                             {event.participant_count || 0} participants
+                          </span>
+                        </div>
+
+                        {/* Invite Code */}
+                        <div className="mb-4">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Invite Code</p>
+                          <div className="flex items-center gap-2">
+                            <code className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono font-bold rounded text-sm flex-1">
+                              {event.invite_code}
+                            </code>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleCopyInviteCode(event.invite_code);
+                              }}
+                              className={`p-2 rounded-lg transition-all ${
+                                copiedCode === event.invite_code
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                              }`}
+                              title="Copy invite code"
+                            >
+                              {copiedCode === event.invite_code ? (
+                                <Check className="w-4 h-4" />
+                              ) : (
+                                <Copy className="w-4 h-4" />
+                              )}
+                            </button>
                           </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="space-y-2">
+                          <Link to={`/events/${event.id}/sponsor`} className="block">
+                            <Button
+                              size="sm"
+                              className="w-full bg-purple-600 hover:bg-purple-700"
+                            >
+                              Start Gifting
+                            </Button>
+                          </Link>
                           <Button
+                            variant="outline"
                             size="sm"
-                            className="bg-purple-600 hover:bg-purple-700"
+                            className="w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setConfirmLeave({ eventId: event.id, eventName: event.name });
+                            }}
                           >
-                            Find Matches →
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Leave Event
                           </Button>
                         </div>
                       </CardContent>
                     </Card>
-                  </Link>
                 </motion.div>
               ))}
             </div>
@@ -193,6 +262,18 @@ export default function EventManagementPage() {
         isOpen={showJoinModal}
         onClose={() => setShowJoinModal(false)}
         onSuccess={loadEvents}
+      />
+
+      {/* Confirm Leave Dialog */}
+      <ConfirmDialog
+        isOpen={!!confirmLeave}
+        title="Leave Event as Sponsor"
+        message={`Are you sure you want to leave "${confirmLeave?.eventName}" as a sponsor? You will no longer be able to view participant wishlists or give gifts for this event.`}
+        confirmText="Leave Event"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={handleLeaveEvent}
+        onCancel={() => setConfirmLeave(null)}
       />
     </div>
   );
