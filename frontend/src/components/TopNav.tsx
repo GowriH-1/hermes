@@ -20,7 +20,7 @@ export function TopNav() {
           {/* Left: Logo + Main Nav */}
           <div className="flex items-center space-x-8">
             {/* Logo */}
-            <Link to="/dashboard" className="flex items-center">
+            <Link to="/wishlist" className="flex items-center">
               <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">Gift Portal</h1>
             </Link>
 

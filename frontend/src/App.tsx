@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
 import WishlistPage from './pages/WishlistPage';
 import EventsPage from './pages/EventsPage';
 import EventManagementPage from './pages/EventManagementPage';
@@ -69,14 +68,6 @@ function App() {
                 <PublicRoute>
                   <Register />
                 </PublicRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
               }
             />
             <Route
