@@ -166,7 +166,7 @@ export const SponsorDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">Event not found</p>
+          <p className="text-xl text-gray-600 dark:text-gray-300">Event not found</p>
           <button
             onClick={() => navigate('/dashboard')}
             className="mt-4 text-primary-500 hover:text-primary-600 font-medium"
@@ -192,7 +192,7 @@ export const SponsorDashboard: React.FC = () => {
               <p className="text-sm text-gray-500">{event.description}</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 {user?.full_name}
               </span>
               <button

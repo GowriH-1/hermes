@@ -261,7 +261,7 @@ export default function WishlistPage() {
                 </div>
               </div>
               <ChevronDown
-                className={`w-5 h-5 text-gray-400 dark:text-gray-400 dark:text-gray-300 transition-transform ${
+                className={`w-5 h-5 text-gray-500 dark:text-gray-300 dark:text-gray-300 transition-transform ${
                   showEventDropdown ? 'rotate-180' : ''
                 }`}
               />
@@ -559,7 +559,7 @@ export default function WishlistPage() {
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Item</h3>
                   <button
                     onClick={() => setShowEditModal(false)}
-                    className="text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="text-gray-500 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X className="w-5 h-5" />
                   </button>

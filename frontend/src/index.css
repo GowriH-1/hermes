@@ -18,6 +18,8 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 14px;
+    letter-spacing: -0.01em;
   }
 
   /* OpenAI-style dark mode with true black */

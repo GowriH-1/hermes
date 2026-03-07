@@ -111,7 +111,7 @@ export default function EventManagementPage() {
                 <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
                   No Sponsored Events Yet
                 </h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
                   Create an event or join one as a sponsor to start matching with participants and giving gifts!
                 </p>
                 <div className="flex gap-4 justify-center">
@@ -155,7 +155,7 @@ export default function EventManagementPage() {
 
                         {/* Description */}
                         {event.description && (
-                          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
                             {event.description}
                           </p>
                         )}
