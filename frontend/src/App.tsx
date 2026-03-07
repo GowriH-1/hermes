@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import WishlistPage from './pages/WishlistPage';
+import EventManagementPage from './pages/EventManagementPage';
 import SponsorEventView from './pages/SponsorEventView';
 
 const queryClient = new QueryClient({
@@ -41,7 +42,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return user ? <Navigate to="/dashboard" /> : <>{children}</>;
+  return user ? <Navigate to="/wishlist" /> : <>{children}</>;
 }
 
 function App() {
@@ -50,7 +51,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<Navigate to="/wishlist" />} />
             <Route
               path="/login"
               element={
@@ -84,6 +85,14 @@ function App() {
               }
             />
             <Route
+              path="/events"
+              element={
+                <PrivateRoute>
+                  <EventManagementPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/events/:eventId/sponsor"
               element={
                 <PrivateRoute>
@@ -93,8 +102,8 @@ function App() {
             />
             {/* Redirect old routes */}
             <Route path="/events/:eventId/participant" element={<Navigate to="/wishlist" />} />
-            <Route path="/events/:eventId" element={<Navigate to="/dashboard" />} />
-            <Route path="/sponsor/:eventId" element={<Navigate to="/dashboard" />} />
+            <Route path="/events/:eventId" element={<Navigate to="/events" />} />
+            <Route path="/sponsor/:eventId" element={<Navigate to="/events" />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
