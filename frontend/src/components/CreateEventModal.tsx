@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Check, Copy } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { apiClient } from '../services/api';
@@ -32,6 +32,28 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [eventDate, setEventDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [createdEvent, setCreatedEvent] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyInviteCode = () => {
+    if (createdEvent?.invite_code) {
+      navigator.clipboard.writeText(createdEvent.invite_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleClose = () => {
+    // Reset all state
+    setName('');
+    setDescription('');
+    setEventType('hackathon');
+    setEventDate('');
+    setError('');
+    setCreatedEvent(null);
+    setCopied(false);
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,17 +81,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
         event_date: formattedDate,
       });
 
-      // Show success with invite code
-      alert(`Event created! Invite code: ${eventData.invite_code}\n\nShare this code with participants.`);
-
+      // Store created event to show invite code in UI
+      setCreatedEvent(eventData);
       onSuccess();
-      onClose();
-
-      // Reset form
-      setName('');
-      setDescription('');
-      setEventType('hackathon');
-      setEventDate('');
     } catch (err: any) {
       console.error('Event creation error:', err.response?.data);
 
@@ -96,7 +110,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
             className="fixed inset-0 bg-black/50 z-50"
           />
 
@@ -111,18 +125,86 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Create New Event
+                  {createdEvent ? 'Event Created!' : 'Create New Event'}
                 </h2>
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Success Panel or Form */}
+              {createdEvent ? (
+                /* Success Panel with Invite Code */
+                <div className="p-6 space-y-6">
+                  {/* Success Icon */}
+                  <div className="flex justify-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                      <Check className="w-8 h-8 text-green-600" />
+                    </div>
+                  </div>
+
+                  {/* Event Details */}
+                  <div className="text-center">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {createdEvent.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {EVENT_TYPES.find((t) => t.value === createdEvent.event_type)?.label || createdEvent.event_type}
+                    </p>
+                  </div>
+
+                  {/* Invite Code Display */}
+                  <div className="bg-gradient-to-br from-primary-50 to-purple-50 border-2 border-primary-200 rounded-lg p-6">
+                    <p className="text-sm font-medium text-gray-700 mb-3 text-center">
+                      Share this invite code:
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
+                      <code className="text-3xl font-bold text-primary-600 tracking-wider">
+                        {createdEvent.invite_code}
+                      </code>
+                      <button
+                        onClick={handleCopyInviteCode}
+                        className={`p-2 rounded-lg transition-all ${
+                          copied
+                            ? 'bg-green-500 text-white'
+                            : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
+                        }`}
+                        title="Copy invite code"
+                      >
+                        {copied ? (
+                          <Check className="w-5 h-5" />
+                        ) : (
+                          <Copy className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-3 text-center">
+                      {copied ? '✓ Copied to clipboard!' : 'Click the copy button to share with participants'}
+                    </p>
+                  </div>
+
+                  {/* Info */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-700">
+                      💡 Participants and sponsors can join your event using this invite code.
+                      You can find it anytime in your event dashboard.
+                    </p>
+                  </div>
+
+                  {/* Close Button */}
+                  <Button
+                    onClick={handleClose}
+                    className="w-full bg-primary-500 hover:bg-primary-600"
+                  >
+                    Done
+                  </Button>
+                </div>
+              ) : (
+                /* Creation Form */
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 {error && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                     {error}
@@ -201,7 +283,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="flex-1"
                     disabled={loading}
                   >
@@ -216,6 +298,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   </Button>
                 </div>
               </form>
+              )}
             </motion.div>
           </div>
         </>
