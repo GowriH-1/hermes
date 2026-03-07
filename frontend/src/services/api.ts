@@ -76,6 +76,11 @@ class ApiClient {
     return response.data;
   }
 
+  async getEventWishlistItems(eventId: number) {
+    const response = await this.client.get(`/api/events/${eventId}/wishlist-items`);
+    return response.data;
+  }
+
   // Wishlists
   async getMyWishlists() {
     const response = await this.client.get('/api/wishlists');

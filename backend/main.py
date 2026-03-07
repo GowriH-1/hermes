@@ -244,11 +244,20 @@ def list_my_events(
         .all()
     )
 
-    # Convert to response objects with role
+    # Convert to response objects with role and stats
     events_with_roles = []
     for event, role in participations:
         event_dict = schemas.EventResponse.from_orm(event).dict()
         event_dict['role'] = role
+
+        # Add participant count
+        participant_count = (
+            db.query(models.EventParticipant)
+            .filter(models.EventParticipant.event_id == event.id)
+            .count()
+        )
+        event_dict['participant_count'] = participant_count
+
         events_with_roles.append(schemas.EventResponse(**event_dict))
 
     return events_with_roles
@@ -322,6 +331,53 @@ def join_event(
     db.commit()
 
     return schemas.EventResponse.from_orm(event)
+
+
+@app.get("/api/events/{event_id}/wishlist-items", response_model=List[schemas.WishlistItemResponse])
+def get_event_wishlist_items(
+    event_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Get all wishlist items linked to a specific event for the current user."""
+    # Verify user is part of the event
+    participation = (
+        db.query(models.EventParticipant)
+        .filter(
+            models.EventParticipant.event_id == event_id,
+            models.EventParticipant.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if not participation:
+        raise HTTPException(status_code=403, detail="You are not part of this event")
+
+    # Get user's wishlist
+    wishlist = (
+        db.query(models.Wishlist)
+        .filter(
+            models.Wishlist.user_id == current_user.id,
+            models.Wishlist.is_default == True
+        )
+        .first()
+    )
+
+    if not wishlist:
+        return []
+
+    # Get items linked to this event
+    items = (
+        db.query(models.WishlistItem)
+        .join(models.WishlistItemEvent)
+        .filter(
+            models.WishlistItem.wishlist_id == wishlist.id,
+            models.WishlistItemEvent.event_id == event_id
+        )
+        .all()
+    )
+
+    return [schemas.WishlistItemResponse.from_orm(item) for item in items]
 
 
 # ============================================================================

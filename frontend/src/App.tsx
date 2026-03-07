@@ -4,9 +4,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import EventDashboard from './pages/EventDashboard';
-import WishlistBuilder from './pages/WishlistBuilder';
-import SponsorDashboard from './pages/SponsorDashboard';
+import ParticipantEventView from './pages/ParticipantEventView';
+import SponsorEventView from './pages/SponsorEventView';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,29 +76,25 @@ function App() {
               }
             />
             <Route
-              path="/events/:eventId"
+              path="/events/:eventId/participant"
               element={
                 <PrivateRoute>
-                  <EventDashboard />
+                  <ParticipantEventView />
                 </PrivateRoute>
               }
             />
             <Route
-              path="/wishlist"
+              path="/events/:eventId/sponsor"
               element={
                 <PrivateRoute>
-                  <WishlistBuilder />
+                  <SponsorEventView />
                 </PrivateRoute>
               }
             />
-            <Route
-              path="/sponsor/:eventId"
-              element={
-                <PrivateRoute>
-                  <SponsorDashboard />
-                </PrivateRoute>
-              }
-            />
+            {/* Redirect old routes */}
+            <Route path="/wishlist" element={<Navigate to="/dashboard" />} />
+            <Route path="/events/:eventId" element={<Navigate to="/dashboard" />} />
+            <Route path="/sponsor/:eventId" element={<Navigate to="/dashboard" />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
