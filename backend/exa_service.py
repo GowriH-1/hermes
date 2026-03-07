@@ -87,6 +87,7 @@ class ExaService:
         max_results: int = 10,
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
+        search_type: str = "deep",
     ) -> List[ExaProduct]:
         """
         Search for products using Exa API.
@@ -96,6 +97,7 @@ class ExaService:
             max_results: Maximum number of results to return
             price_min: Minimum price filter (optional)
             price_max: Maximum price filter (optional)
+            search_type: "instant" (keyword) or "deep" (neural/deep)
 
         Returns:
             List of ExaProduct objects with product information
@@ -105,6 +107,10 @@ class ExaService:
             return self._get_mock_products(query, max_results, price_min, price_max)
 
         try:
+            # Map search_type to Exa API type
+            # "instant" maps to "keyword", "deep" maps to "deep"
+            exa_type = "keyword" if search_type == "instant" else "deep"
+            
             # Enhance query with shopping context
             enhanced_query = f"Finding the best {query} to buy"
             if price_min is not None or price_max is not None:
@@ -138,14 +144,14 @@ class ExaService:
                 }
             }
 
-            # Search with Exa using "deep" search for best results
-            print(f"Searching Exa (deep) for: {enhanced_query}")
+            # Search with Exa
+            print(f"Searching Exa ({search_type}/{exa_type}) for: {enhanced_query}")
             search_response = self.client.search(
                 query=enhanced_query,
-                type="deep",
+                type=exa_type,
                 num_results=max_results,
-                output_schema=output_schema,
-                contents={"highlights": {"max_characters": 500}}
+                output_schema=output_schema if exa_type == "deep" else None,
+                contents={"highlights": {"max_characters": 500}} if exa_type == "deep" else {"text": {"max_characters": 1000}}
             )
 
             products = []

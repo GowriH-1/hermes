@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Trash2, Edit2, Star, Lock, Globe, X, ChevronDown, Sparkles } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, Star, Lock, Globe, X, ChevronDown, Sparkles, ExternalLink } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../services/api';
 import { TopNav } from '../components/TopNav';
@@ -55,25 +55,14 @@ export default function WishlistPage() {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
 
-  // Exa search
-  const [searchQuery, setSearchQuery] = useState('');
+  // Unified Input State
+  const [inputValue, setInputValue] = useState('');
   const [searchMinPrice, setSearchMinPrice] = useState<number | ''>('');
   const [searchMaxPrice, setSearchMaxPrice] = useState<number | ''>('');
+  const [searchMode, setSearchMode] = useState<'instant' | 'deep'>('deep');
   const [searchResults, setSearchResults] = useState<ExaProduct[]>([]);
   const [searching, setSearching] = useState(false);
-
-  // Custom Item
-  const [showCustomAdd, setShowCustomAdd] = useState(false);
-  const [customItem, setCustomItem] = useState({
-    title: '',
-    description: '',
-    price_min: 0,
-    price_max: 0,
-    category: 'other',
-    priority: 3,
-    privacy_level: 'public',
-    url: '',
-  });
+  const [privacyLevel, setPrivacyLevel] = useState('public');
 
   // Editing
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
@@ -94,16 +83,17 @@ export default function WishlistPage() {
 
   // Debounced search effect
   useEffect(() => {
+    const delay = searchMode === 'instant' ? 150 : 500;
     const timer = setTimeout(() => {
-      if (searchQuery.trim().length >= 2) {
+      if (inputValue.trim().length >= 2) {
         handleSearch();
-      } else if (searchQuery.trim().length === 0) {
+      } else if (inputValue.trim().length === 0) {
         setSearchResults([]);
       }
-    }, 500);
+    }, delay);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, searchMinPrice, searchMaxPrice]);
+  }, [inputValue, searchMinPrice, searchMaxPrice, searchMode]);
 
   const loadParticipantEvents = async () => {
     try {
@@ -112,7 +102,6 @@ export default function WishlistPage() {
       const participantOnly = allEvents.filter((e: Event) => e.role === 'participant');
       setParticipantEvents(participantOnly);
 
-      // Auto-select event from URL param or default to "All Items" (null)
       const eventIdFromUrl = searchParams.get('event');
       if (eventIdFromUrl === 'all') {
         setSelectedEventId(null);
@@ -122,8 +111,6 @@ export default function WishlistPage() {
         setSelectedEventId(eventId);
         setSelectedEvent(participantOnly.find((e: Event) => e.id === eventId) || null);
       } else {
-        // Default to public wishlist if no events, or first event if exists
-        // User wants public wishlist to be prominent
         setSelectedEventId(null);
         setSelectedEvent(null);
       }
@@ -141,7 +128,6 @@ export default function WishlistPage() {
         const items = await apiClient.getEventWishlistItems(eventId);
         setWishlistItems(items);
       } else {
-        // Load all items from default wishlist
         const wishlists = await apiClient.getMyWishlists();
         const defaultWishlist = wishlists.find((w: any) => w.is_default) || wishlists[0];
         if (defaultWishlist) {
@@ -167,19 +153,20 @@ export default function WishlistPage() {
       setSearchParams({ event: 'all' });
     }
     setShowEventDropdown(false);
-    setSearchResults([]); // Clear search results when switching events
+    setSearchResults([]);
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!inputValue.trim()) return;
 
     try {
       setSearching(true);
       const results = await apiClient.searchProducts(
-        searchQuery, 
+        inputValue, 
         10, 
         searchMinPrice !== '' ? searchMinPrice : undefined, 
-        searchMaxPrice !== '' ? searchMaxPrice : undefined
+        searchMaxPrice !== '' ? searchMaxPrice : undefined,
+        searchMode
       );
       setSearchResults(results.products || []);
     } catch (error) {
@@ -208,11 +195,11 @@ export default function WishlistPage() {
         price_min: product.price || 0,
         category: 'other',
         priority: 3,
-        privacy_level: selectedEventId ? 'event_only' : 'public',
+        privacy_level: privacyLevel,
         event_ids: selectedEventId ? [selectedEventId] : [],
       });
 
-      setWishlistItems([...wishlistItems, newItem]);
+      setWishlistItems([newItem, ...wishlistItems]);
       setSearchResults(searchResults.filter((p) => p.url !== product.url));
     } catch (error: any) {
       console.error('Error adding item:', error);
@@ -220,9 +207,8 @@ export default function WishlistPage() {
     }
   };
 
-  const handleCustomAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customItem.title) return;
+  const handleCustomAdd = async () => {
+    if (!inputValue.trim()) return;
 
     try {
       const wishlists = await apiClient.getMyWishlists();
@@ -233,28 +219,25 @@ export default function WishlistPage() {
         return;
       }
 
-      // If price_max is 0 or less than price_min, set it to price_min
-      const finalPriceMax = customItem.price_max >= customItem.price_min ? customItem.price_max : customItem.price_min;
+      const firstLine = inputValue.split('\n')[0].substring(0, 60);
 
       const newItem = await apiClient.createWishlistItem({
         wishlist_id: defaultWishlist.id,
-        ...customItem,
-        price_max: finalPriceMax,
+        title: firstLine || 'Custom Wish',
+        description: inputValue,
+        price_min: Number(searchMinPrice) || 0,
+        price_max: Number(searchMaxPrice) || 0,
+        category: 'other',
+        priority: 3,
+        privacy_level: privacyLevel,
         event_ids: selectedEventId ? [selectedEventId] : [],
       });
 
-      setWishlistItems([...wishlistItems, newItem]);
-      setCustomItem({
-        title: '',
-        description: '',
-        price_min: 0,
-        price_max: 0,
-        category: 'other',
-        priority: 3,
-        privacy_level: selectedEventId ? 'event_only' : 'public',
-        url: '',
-      });
-      setShowCustomAdd(false);
+      setWishlistItems([newItem, ...wishlistItems]);
+      setInputValue('');
+      setSearchMinPrice('');
+      setSearchMaxPrice('');
+      setSearchResults([]);
     } catch (error: any) {
       console.error('Error adding custom item:', error);
       alert(error.response?.data?.detail || 'Failed to add item');
@@ -303,542 +286,392 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <TopNav />
 
-      {/* Event Selector */}
-      <div className="bg-white border-b">
+      {/* Event Selector Header */}
+      <div className="bg-white border-b sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="relative">
-            <button
-              onClick={() => setShowEventDropdown(!showEventDropdown)}
-              className="flex items-center justify-between w-full md:w-96 px-4 py-3 bg-white border-2 border-primary-200 rounded-lg hover:border-primary-400 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center text-xl">
-                  {selectedEvent ? '🎁' : '🌎'}
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative">
+              <button
+                onClick={() => setShowEventDropdown(!showEventDropdown)}
+                className="flex items-center justify-between w-full md:w-80 px-4 py-2.5 bg-white border-2 border-primary-100 rounded-xl hover:border-primary-300 transition-all shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center text-lg">
+                    {selectedEvent ? '🎁' : '🌎'}
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-gray-900 text-sm">
+                      {selectedEvent?.name || 'Public Wishlist (All)'}
+                    </div>
+                    <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
+                      {selectedEvent ? 'Event Mode' : 'Global Mode'}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-900">
-                    {selectedEvent?.name || 'Public Wishlist (All)'}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {selectedEvent ? `${selectedEvent.participant_count} members` : 'Global visibility'}
-                  </div>
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showEventDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {showEventDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute z-30 mt-2 w-full md:w-80 bg-white border-2 border-gray-100 rounded-xl shadow-xl overflow-hidden"
+                  >
+                    <div className="p-2 max-h-96 overflow-y-auto">
+                      <button
+                        onClick={() => handleEventSwitch(null)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors mb-1 ${selectedEventId === null ? 'bg-primary-50' : 'hover:bg-gray-50'}`}
+                      >
+                        <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center text-lg">🌎</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-gray-900 text-sm">Public Wishlist</div>
+                          <div className="text-[10px] text-gray-500 font-bold uppercase">All items, visible to all</div>
+                        </div>
+                        {selectedEventId === null && <div className="w-2 h-2 bg-primary-500 rounded-full" />}
+                      </button>
+
+                      <div className="h-px bg-gray-100 my-1 mx-2" />
+
+                      {participantEvents.map((event) => (
+                        <button
+                          key={event.id}
+                          onClick={() => handleEventSwitch(event)}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${selectedEventId === event.id ? 'bg-primary-50' : 'hover:bg-gray-50'}`}
+                        >
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-lg">🎁</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-gray-900 text-sm truncate">{event.name}</div>
+                            <div className="text-[10px] text-gray-500 font-bold uppercase">{event.participant_count} members</div>
+                          </div>
+                          {selectedEventId === event.id && <div className="w-2 h-2 bg-primary-500 rounded-full" />}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {selectedEvent && (
+              <div className="hidden md:flex items-center gap-4 text-right">
+                <div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase">Invite Code</div>
+                  <div className="font-mono font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded border border-primary-100">{selectedEvent.invite_code}</div>
                 </div>
               </div>
-              <ChevronDown
-                className={`w-5 h-5 text-gray-400 transition-transform ${
-                  showEventDropdown ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-
-            {/* Dropdown */}
-            <AnimatePresence>
-              {showEventDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute z-10 mt-2 w-full md:w-96 bg-white border-2 border-gray-200 rounded-lg shadow-xl"
-                >
-                  <div className="p-2 max-h-96 overflow-y-auto">
-                    {/* General Wishlist Option */}
-                    <button
-                      onClick={() => handleEventSwitch(null)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors mb-1 ${
-                        selectedEventId === null
-                          ? 'bg-primary-50 border-2 border-primary-300'
-                          : 'hover:bg-gray-50 border-2 border-transparent'
-                      }`}
-                    >
-                      <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center text-xl">
-                        🌎
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-gray-900">
-                          Public Wishlist
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          All items, global visibility
-                        </div>
-                      </div>
-                      {selectedEventId === null && (
-                        <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-                      )}
-                    </button>
-
-                    <div className="h-px bg-gray-100 my-1 mx-2" />
-
-                    {participantEvents.map((event) => (
-                      <button
-                        key={event.id}
-                        onClick={() => handleEventSwitch(event)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                          selectedEventId === event.id
-                            ? 'bg-primary-50 border-2 border-primary-300'
-                            : 'hover:bg-gray-50 border-2 border-transparent'
-                        }`}
-                      >
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-xl">
-                          🎁
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 truncate">
-                            {event.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {event.event_type.replace('_', ' ')} • {event.participant_count} members
-                          </div>
-                        </div>
-                        {selectedEventId === event.id && (
-                          <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left: My Wishlist */}
-          <Card className="h-fit">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{selectedEvent ? 'Event Wishlist' : 'My Public Wishlist'}</span>
-                <span className="text-sm font-normal text-gray-500">
-                  {wishlistItems.length} items
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {loadingItems ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Top Row: Add Items & Discovery */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+          {/* LEFT: Unified Input Console */}
+          <div className="lg:col-span-5">
+            <Card className="h-full border-none shadow-lg shadow-primary-100/20 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-extrabold flex items-center gap-2">
+                  <Sparkles className="text-pink-500 w-5 h-5" />
+                  Wish Console
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Your Desire</label>
+                  <textarea
+                    className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl text-base min-h-[160px] focus:border-primary-400 focus:ring-0 transition-all shadow-inner bg-gray-50/30"
+                    placeholder="Type a product name to search, or describe a unique wish in detail..."
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                  />
                 </div>
-              ) : wishlistItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">
-                    No wishlist items yet. Search for products or add one manually!
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {wishlistItems.map((item) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -100 }}
-                      className={`border rounded-lg p-4 ${
-                        item.is_fulfilled ? 'bg-green-50 border-green-200' : 'bg-white'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                            {item.is_fulfilled && (
-                              <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
-                                ✓ Claimed
-                              </span>
-                            )}
-                          </div>
-                          {item.description && (
-                            <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                          )}
-                          <div className="flex items-center gap-3 text-xs text-gray-500">
-                            <span className="font-medium text-primary-600">
-                              ${item.price_min}
-                              {item.price_max && ` - $${item.price_max}`}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-3 h-3 ${
-                                    i < item.priority
-                                      ? 'fill-yellow-400 text-yellow-400'
-                                      : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              {item.privacy_level === 'public' ? (
-                                <Globe className="w-3 h-3" />
-                              ) : (
-                                <Lock className="w-3 h-3" />
-                              )}
-                              {item.privacy_level}
-                            </span>
-                          </div>
-                        </div>
-                        {!item.is_fulfilled && (
-                          <div className="flex gap-2 ml-4">
-                            <button
-                              onClick={() => handleEditItem(item)}
-                              className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteItem(item.id)}
-                              className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      {item.url && (
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary-600 hover:underline mt-2 inline-block"
-                        >
-                          View Product →
-                        </a>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* Right: Add Items */}
-          <Card className="h-fit">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Add Items</span>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowCustomAdd(!showCustomAdd)}
-                  className={showCustomAdd ? 'bg-primary-50 text-primary-600 border-primary-200' : ''}
-                >
-                  {showCustomAdd ? 'Search Instead' : 'Add Custom'}
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {showCustomAdd ? (
-                /* Simplified Free-form Custom Item Form */
-                <form onSubmit={handleCustomAdd} className="space-y-4 p-4 bg-primary-50/50 rounded-xl border-2 border-dashed border-primary-200">
-                  <div>
-                    <label className="block text-xs font-bold text-primary-700 uppercase mb-2 flex items-center gap-2">
-                      <Sparkles className="w-3 h-3" />
-                      What are you wishing for?
-                    </label>
-                    <textarea
-                      className="w-full px-4 py-3 border-2 border-white rounded-lg text-sm min-h-[120px] focus:border-primary-400 focus:ring-0 transition-colors shadow-sm"
-                      placeholder="e.g. A high-end mechanical keyboard for coding. I prefer tactile switches and a 75% layout..."
-                      value={customItem.description}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        // Use first line or first 50 chars as title, whole thing as description
-                        const lines = val.split('\n');
-                        const firstLine = lines[0].substring(0, 60);
-                        setCustomItem({ 
-                          ...customItem, 
-                          title: firstLine || 'Custom Wish',
-                          description: val 
-                        });
-                      }}
-                      required
-                    />
-                    <p className="mt-2 text-[10px] text-primary-600 italic">
-                      Tip: Just describe it! Our matching agent will help sponsors find exactly what you mean.
-                    </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Visibility</label>
+                    <select
+                      className="w-full px-4 py-2.5 border-2 border-gray-100 rounded-xl text-sm bg-white font-bold text-gray-700"
+                      value={privacyLevel}
+                      onChange={(e) => setPrivacyLevel(e.target.value)}
+                    >
+                      <option value="public">🌎 Public</option>
+                      <option value="event_only">🔒 Event Only</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price Fit (Optional)</label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        placeholder="Min $"
+                        value={searchMinPrice}
+                        onChange={(e) => setSearchMinPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="h-10 text-xs font-bold rounded-xl border-2 border-gray-100"
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Max $"
+                        value={searchMaxPrice}
+                        onChange={(e) => setSearchMaxPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="h-10 text-xs font-bold rounded-xl border-2 border-gray-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-gray-400 font-medium italic bg-gray-50 p-3 rounded-xl border border-gray-100">
+                  Tip: Real products appear on the right as you type. For generic ideas, click "Add as Custom Wish" — your sponsor will use your description to find the perfect match!
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* RIGHT: Live Discovery Panel */}
+          <div className="lg:col-span-7">
+            <div className="h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-widest">
+                    <Search className="w-4 h-4 text-primary-500" />
+                    Live Discovery
                   </div>
                   
-                  <div className="flex gap-3">
-                    <div className="flex-1">
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Privacy</label>
-                      <select
-                        className="w-full px-3 py-1.5 border rounded-lg text-xs bg-white"
-                        value={customItem.privacy_level}
-                        onChange={(e) => setCustomItem({ ...customItem, privacy_level: e.target.value })}
-                      >
-                        <option value="public">Public</option>
-                        <option value="event_only">Event Only</option>
-                      </select>
-                    </div>
-                    <div className="flex-[2] flex items-end">
-                      <Button type="submit" className="w-full bg-primary-500 hover:bg-primary-600 shadow-md">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add to Wishlist
-                      </Button>
-                    </div>
+                  {/* Research Depth Toggle */}
+                  <div className="flex items-center bg-gray-100 p-1 rounded-lg">
+                    <button
+                      onClick={() => setSearchMode('instant')}
+                      className={`px-2 py-1 text-[10px] font-black uppercase rounded-md transition-all ${
+                        searchMode === 'instant' 
+                          ? 'bg-amber-500 text-white shadow-sm' 
+                          : 'text-gray-400 hover:text-gray-600'
+                      }`}
+                    >
+                      Instant
+                    </button>
+                    <button
+                      onClick={() => setSearchMode('deep')}
+                      className={`px-2 py-1 text-[10px] font-black uppercase rounded-md transition-all ${
+                        searchMode === 'deep' 
+                          ? 'bg-primary-500 text-white shadow-sm' 
+                          : 'text-gray-400 hover:text-gray-600'
+                      }`}
+                    >
+                      Deep
+                    </button>
                   </div>
-                </form>
-              ) : (
-                <>
-                  {/* Search Bar */}
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Type to search via Exa..."
-                          className="pl-9 pr-4"
-                        />
-                        {searching && (
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500" />
+                </div>
+                
+                {searching && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-primary-500 animate-pulse">
+                    <div className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
+                    EXA AI SEARCHING...
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar max-h-[500px]">
+                {/* 1. MAGIC ADD SHORTCUT (Always first if input exists) */}
+                <AnimatePresence>
+                  {inputValue.trim().length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="border-2 border-dashed border-pink-200 bg-pink-50/30 rounded-2xl p-4 group hover:border-pink-400 transition-all cursor-pointer shadow-sm shadow-pink-100/20"
+                      onClick={handleCustomAdd}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center text-pink-500">
+                            <Sparkles className="w-6 h-6" />
                           </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-500 uppercase">Min $</span>
-                        <Input
-                          type="number"
-                          value={searchMinPrice}
-                          onChange={(e) => setSearchMinPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                          placeholder="0"
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div className="flex-1 flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-500 uppercase">Max $</span>
-                        <Input
-                          type="number"
-                          value={searchMaxPrice}
-                          onChange={(e) => setSearchMaxPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                          placeholder="Any"
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      {(searchQuery || searchMinPrice || searchMaxPrice) && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSearchQuery('');
-                            setSearchMinPrice('');
-                            setSearchMaxPrice('');
-                            setSearchResults([]);
-                          }}
-                          className="h-8 px-2 text-xs text-gray-500 hover:text-red-500"
-                        >
-                          Clear
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Search Results */}
-                  <div className="space-y-3">
-                    {searchResults.length === 0 && !searching && searchQuery && (
-                      <p className="text-center text-gray-500 py-8">
-                        No products found. Try a different search.
-                      </p>
-                    )}
-
-                    {searchResults.map((product, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start gap-3">
-                          {product.image && (
-                            <img
-                              src={product.image}
-                              alt={product.title}
-                              className="w-16 h-16 object-cover rounded"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 dark:text-white mb-1 truncate">
-                              {product.title}
-                            </h4>
-                            {product.summary && (
-                              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                                {product.summary}
-                              </p>
-                            )}
-                            <div className="flex items-center justify-between">
-                              {product.price && (
-                                <span className="text-primary-600 font-medium">
-                                  ${product.price}
-                                </span>
-                              )}
-                              <Button
-                                size="sm"
-                                onClick={() => handleAddFromSearch(product)}
-                                className="bg-primary-500 hover:bg-primary-600"
-                              >
-                                <Plus className="w-4 h-4 mr-1" />
-                                Add
-                              </Button>
+                          <div>
+                            <h4 className="font-black text-gray-900 text-sm uppercase tracking-tight">Add as Custom Wish</h4>
+                            <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">"{inputValue}"</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-[9px] px-2 py-0.5 bg-pink-100 text-pink-600 font-bold rounded-full">IDEAL FOR GENERIC IDEAS</span>
                             </div>
                           </div>
                         </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Powered by Exa */}
-                  {searchResults.length > 0 && (
-                    <div className="text-center text-xs text-gray-500 pt-4 border-t">
-                      Powered by <span className="font-semibold text-primary-600">Exa</span>
-                    </div>
+                        <Plus className="w-5 h-5 text-pink-400 group-hover:scale-125 transition-transform" />
+                      </div>
+                    </motion.div>
                   )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+                </AnimatePresence>
+
+                {/* 2. EXA SEARCH RESULTS */}
+                {searchResults.map((product, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="border-2 border-gray-100 bg-white rounded-2xl p-4 hover:border-primary-200 hover:shadow-md transition-all group"
+                  >
+                    <div className="flex items-start gap-4">
+                      {product.image ? (
+                        <img src={product.image} alt={product.title} className="w-16 h-16 object-cover rounded-xl border border-gray-50" />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-50 rounded-xl flex items-center justify-center text-gray-300">
+                          <Search className="w-6 h-6" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2">
+                          <h4 className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors leading-tight">{product.title}</h4>
+                          <span className="text-sm font-black text-primary-500">${product.price || '??'}</span>
+                        </div>
+                        {product.summary && <p className="text-[11px] text-gray-500 line-clamp-2 mt-1">{product.summary}</p>}
+                        <div className="flex items-center justify-between mt-3">
+                          <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                            VIEW SOURCE <ExternalLink className="w-3 h-3" />
+                          </a>
+                          <Button size="sm" onClick={() => handleAddFromSearch(product)} className="h-8 bg-primary-500 hover:bg-primary-600 px-4 rounded-xl text-[11px] font-bold">
+                            ADD TO WISHLIST
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+
+                {inputValue.trim().length >= 2 && searchResults.length === 0 && !searching && (
+                  <div className="text-center py-12 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
+                    <p className="text-sm text-gray-400 font-bold italic">No exact product matches found.<br/>You can still add it as a custom wish!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Event Info Card - Only show for events */}
-        {selectedEvent && (
-          <Card className="mt-6">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900">Event Details</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {selectedEvent.description || 'No description'}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500 mb-1">Invite Code</p>
-                  <code className="px-3 py-1.5 bg-primary-50 text-primary-700 font-mono font-bold rounded border border-primary-200">
-                    {selectedEvent.invite_code}
-                  </code>
-                </div>
+        {/* Bottom Row: My Wishlist */}
+        <section className="space-y-6 pt-8 border-t-2 border-gray-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary-200">
+                <Star className="w-6 h-6 fill-white" />
               </div>
-            </CardContent>
-          </Card>
-        )}
+              My Wishlist
+              <span className="text-sm font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">{wishlistItems.length} items</span>
+            </h2>
+          </div>
+
+          {loadingItems ? (
+            <div className="text-center py-20 bg-white rounded-3xl border-2 border-gray-50 shadow-sm">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto" />
+              <p className="mt-4 text-sm font-bold text-gray-400 uppercase tracking-widest">Fetching your treasures...</p>
+            </div>
+          ) : wishlistItems.length === 0 ? (
+            <div className="text-center py-24 bg-white rounded-[40px] border-4 border-dashed border-gray-50">
+              <div className="text-6xl mb-6">🏜️</div>
+              <h3 className="text-xl font-black text-gray-900">Your wishlist is a blank canvas.</h3>
+              <p className="text-gray-500 max-w-md mx-auto mt-2 font-medium">Use the console above to discover products or add custom ideas for sponsors to find.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {wishlistItems.map((item) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`group relative border-2 rounded-[32px] p-6 transition-all hover:shadow-xl hover:-translate-y-1 ${
+                    item.is_fulfilled ? 'bg-green-50 border-green-100 shadow-green-100/20' : 'bg-white border-gray-50 shadow-gray-200/20'
+                  }`}
+                >
+                  <div className="flex justify-between items-start gap-4 mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-black text-gray-900 text-lg leading-tight line-clamp-2">{item.title}</h4>
+                        {item.is_fulfilled && (
+                          <span className="shrink-0 px-2 py-0.5 text-[10px] font-black bg-green-500 text-white rounded-full uppercase tracking-tighter">Claimed</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-black text-primary-600">${item.price_min}{item.price_max ? ` - ${item.price_max}` : ''}</span>
+                        <div className="flex items-center">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star key={i} className={`w-3 h-3 ${i < item.priority ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <button onClick={() => handleEditItem(item)} className="p-2 text-gray-300 hover:text-primary-500 hover:bg-primary-50 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDeleteItem(item.id)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+
+                  {item.description && <p className="text-xs text-gray-500 line-clamp-3 mb-4 font-medium leading-relaxed">{item.description}</p>}
+
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-auto">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-lg ${item.privacy_level === 'public' ? 'bg-blue-50 text-blue-500' : 'bg-amber-50 text-amber-500'}`}>
+                        {item.privacy_level === 'public' ? <Globe className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                      </div>
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{item.privacy_level}</span>
+                    </div>
+                    {item.url && (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-primary-500 hover:underline flex items-center gap-1">
+                        VIEW PRODUCT <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </section>
       </main>
 
       {/* Edit Modal */}
       <AnimatePresence>
         {showEditModal && editingItem && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowEditModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
-            />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowEditModal(false)} className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50" />
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold">Edit Item</h3>
-                  <button
-                    onClick={() => setShowEditModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-[40px] shadow-2xl max-w-md w-full p-8 overflow-hidden relative">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Edit Wish</h3>
+                  <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-gray-100 rounded-2xl transition-colors"><X className="w-6 h-6 text-gray-400" /></button>
                 </div>
 
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleUpdateItem(editingItem.id, editingItem);
-                  }}
-                  className="space-y-4"
-                >
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Title</label>
-                    <Input
-                      value={editingItem.title}
-                      onChange={(e) =>
-                        setEditingItem({ ...editingItem, title: e.target.value })
-                      }
-                    />
+                <form onSubmit={(e) => { e.preventDefault(); handleUpdateItem(editingItem.id, editingItem); }} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Item Title</label>
+                    <Input value={editingItem.title} onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })} className="rounded-2xl border-2 border-gray-100 h-12 font-bold" />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Price (min)</label>
-                    <Input
-                      type="number"
-                      value={editingItem.price_min}
-                      onChange={(e) =>
-                        setEditingItem({
-                          ...editingItem,
-                          price_min: Number(e.target.value),
-                        })
-                      }
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Price (min)</label>
+                      <Input type="number" value={editingItem.price_min} onChange={(e) => setEditingItem({ ...editingItem, price_min: Number(e.target.value) })} className="rounded-2xl border-2 border-gray-100 h-12 font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Priority</label>
+                      <select value={editingItem.priority} onChange={(e) => setEditingItem({ ...editingItem, priority: Number(e.target.value) })} className="w-full h-12 px-4 border-2 border-gray-100 rounded-2xl font-bold bg-white text-sm">
+                        {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                      </select>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Priority (1-5)</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="5"
-                      value={editingItem.priority}
-                      onChange={(e) =>
-                        setEditingItem({
-                          ...editingItem,
-                          priority: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Privacy</label>
-                    <select
-                      value={editingItem.privacy_level}
-                      onChange={(e) =>
-                        setEditingItem({
-                          ...editingItem,
-                          privacy_level: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border rounded-lg"
-                    >
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Privacy</label>
+                    <select value={editingItem.privacy_level} onChange={(e) => setEditingItem({ ...editingItem, privacy_level: e.target.value })} className="w-full h-12 px-4 border-2 border-gray-100 rounded-2xl font-bold bg-white text-sm">
                       <option value="event_only">Event Only</option>
                       <option value="public">Public</option>
                     </select>
                   </div>
 
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowEditModal(false)}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-1 bg-primary-500 hover:bg-primary-600"
-                    >
-                      Save Changes
-                    </Button>
+                  <div className="flex gap-4 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-xs border-2 border-gray-100">Cancel</Button>
+                    <Button type="submit" className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-xs bg-primary-500 hover:bg-primary-600 shadow-lg shadow-primary-200">Save Changes</Button>
                   </div>
                 </form>
               </motion.div>

@@ -695,6 +695,7 @@ def search_products(search_request: schemas.ExaSearchRequest):
             max_results=search_request.max_results,
             price_min=search_request.price_min,
             price_max=search_request.price_max,
+            search_type=search_request.search_type,
         )
 
         return schemas.ExaSearchResponse(
