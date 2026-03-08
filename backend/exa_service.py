@@ -115,13 +115,13 @@ class ExaService:
                     price_info.append(f"under ${price_max}")
                 enhanced_query += f" with budget {' and '.join(price_info)}"
 
-            # Search with Exa - use basic search with text content
+            # Search with Exa - use basic search
             print(f"Searching Exa for: {enhanced_query}")
-            search_response = self.client.search(
+            search_response = self.client.search_and_contents(
                 query=enhanced_query,
                 num_results=max_results,
                 use_autoprompt=True,
-                text={"max_characters": 500}
+                text=True
             )
 
             products = []

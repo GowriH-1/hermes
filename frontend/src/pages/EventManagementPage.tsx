@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Users, Copy, Check, LogOut, Crown } from 'lucide-react';
+import { Plus, Users, Copy, Check, Crown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiClient } from '../services/api';
 import { TopNav } from '../components/TopNav';
@@ -9,7 +9,6 @@ import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { CreateEventModal } from '../components/CreateEventModal';
 import { JoinEventModal } from '../components/JoinEventModal';
-import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface Event {
   id: number;
@@ -29,7 +28,6 @@ export default function EventManagementPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [confirmLeave, setConfirmLeave] = useState<{ eventId: number; eventName: string } | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -56,20 +54,6 @@ export default function EventManagementPage() {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
-  };
-
-  const handleLeaveEvent = async () => {
-    if (!confirmLeave) return;
-
-    try {
-      await apiClient.leaveEvent(confirmLeave.eventId);
-      toast.success(`Successfully left "${confirmLeave.eventName}" as a sponsor`);
-      loadEvents(); // Refresh the list
-      setConfirmLeave(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Failed to leave event');
-      setConfirmLeave(null);
-    }
   };
 
   if (loading) {
@@ -224,40 +208,17 @@ export default function EventManagementPage() {
                         </div>
 
                         {/* Actions */}
-                        <div className="space-y-2">
-                          {currentUserId === event.created_by && (
-                            <Link to={`/events/${event.id}/organizer`} className="block">
-                              <Button
-                                size="sm"
-                                className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold"
-                              >
-                                <Crown className="w-4 h-4 mr-2" />
-                                Organizer Dashboard
-                              </Button>
-                            </Link>
-                          )}
-                          <Link to={`/events/${event.id}/sponsor`} className="block">
+                        {currentUserId === event.created_by && (
+                          <Link to={`/events/${event.id}/organizer`} className="block">
                             <Button
                               size="sm"
-                              className="w-full bg-purple-600 hover:bg-purple-700"
+                              className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold"
                             >
-                              Start Gifting
+                              <Crown className="w-4 h-4 mr-2" />
+                              Organizer Dashboard
                             </Button>
                           </Link>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setConfirmLeave({ eventId: event.id, eventName: event.name });
-                            }}
-                          >
-                            <LogOut className="w-4 h-4 mr-2" />
-                            Leave Event
-                          </Button>
-                        </div>
+                        )}
                       </CardContent>
                     </Card>
                 </motion.div>
@@ -278,18 +239,6 @@ export default function EventManagementPage() {
         onClose={() => setShowJoinModal(false)}
         onSuccess={loadEvents}
         sponsorOnly={true}
-      />
-
-      {/* Confirm Leave Dialog */}
-      <ConfirmDialog
-        isOpen={!!confirmLeave}
-        title="Leave Event as Sponsor"
-        message={`Are you sure you want to leave "${confirmLeave?.eventName}" as a sponsor? You will no longer be able to view participant wishlists or give gifts for this event.`}
-        confirmText="Leave Event"
-        cancelText="Cancel"
-        variant="danger"
-        onConfirm={handleLeaveEvent}
-        onCancel={() => setConfirmLeave(null)}
       />
     </div>
   );
