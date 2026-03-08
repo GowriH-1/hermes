@@ -186,12 +186,13 @@ class ApiClient {
   }
 
   // Product Search (Exa)
-  async searchProducts(query: string, maxResults: number = 10, priceMin?: number, priceMax?: number) {
+  async searchProducts(query: string, maxResults: number = 10, priceMin?: number, priceMax?: number, searchType: string = 'deep') {
     const response = await this.client.post('/api/search/products', {
       query,
       max_results: maxResults,
       price_min: priceMin,
       price_max: priceMax,
+      search_type: searchType,
     });
     return response.data;
   }

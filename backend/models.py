@@ -101,7 +101,7 @@ class Wishlist(Base):
 
     # Relationships
     user = relationship("User", back_populates="wishlists")
-    items = relationship("WishlistItem", back_populates="wishlist")
+    items = relationship("WishlistItem", back_populates="wishlist", cascade="all, delete-orphan")
 
 
 class WishlistItem(Base):
@@ -129,8 +129,8 @@ class WishlistItem(Base):
 
     # Relationships
     wishlist = relationship("Wishlist", back_populates="items")
-    events = relationship("WishlistItemEvent", back_populates="wishlist_item")
-    gifts = relationship("Gift", back_populates="wishlist_item")
+    events = relationship("WishlistItemEvent", back_populates="wishlist_item", cascade="all, delete-orphan")
+    gifts = relationship("Gift", back_populates="wishlist_item", cascade="all, delete-orphan")
 
 
 class WishlistItemEvent(Base):

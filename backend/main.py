@@ -486,7 +486,7 @@ def get_default_wishlist(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(database.get_db),
 ):
-    """Get the current user's default wishlist."""
+    """Get the current user's default wishlist. Creates one if it doesn't exist."""
     wishlist = (
         db.query(models.Wishlist)
         .filter(
@@ -495,8 +495,18 @@ def get_default_wishlist(
         )
         .first()
     )
+    
     if not wishlist:
-        raise HTTPException(status_code=404, detail="Default wishlist not found")
+        # Auto-create if missing (e.g. for users created before this feature)
+        wishlist = models.Wishlist(
+            user_id=current_user.id,
+            name=f"{current_user.username}'s Wishlist",
+            is_default=True,
+        )
+        db.add(wishlist)
+        db.commit()
+        db.refresh(wishlist)
+        
     return schemas.WishlistResponse.model_validate(wishlist)
 
 
