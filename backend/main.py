@@ -509,6 +509,58 @@ def get_event_wishlist_items(
     return [schemas.WishlistItemResponse.from_orm(item) for item in items]
 
 
+@app.get("/api/events/{event_id}/participants/{participant_id}/wishlist-items", response_model=List[schemas.WishlistItemResponse])
+def get_participant_wishlist_items(
+    event_id: int,
+    participant_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Get wishlist items for a specific participant (organizer only)."""
+    # Verify user is the event organizer
+    require_event_organizer(event_id, current_user, db)
+
+    # Verify participant is part of the event
+    participation = (
+        db.query(models.EventParticipant)
+        .filter(
+            models.EventParticipant.event_id == event_id,
+            models.EventParticipant.user_id == participant_id,
+            models.EventParticipant.role == "participant",
+        )
+        .first()
+    )
+
+    if not participation:
+        raise HTTPException(status_code=404, detail="Participant not found in this event")
+
+    # Get participant's wishlist
+    wishlist = (
+        db.query(models.Wishlist)
+        .filter(
+            models.Wishlist.user_id == participant_id,
+            models.Wishlist.is_default == True
+        )
+        .first()
+    )
+
+    if not wishlist:
+        return []
+
+    # Get items linked to this event
+    items = (
+        db.query(models.WishlistItem)
+        .join(models.WishlistItemEvent)
+        .filter(
+            models.WishlistItem.wishlist_id == wishlist.id,
+            models.WishlistItemEvent.event_id == event_id
+        )
+        .all()
+    )
+
+    return [schemas.WishlistItemResponse.from_orm(item) for item in items]
+
+
 # ============================================================================
 # Wishlist Routes
 # ============================================================================
@@ -894,6 +946,171 @@ def list_event_prizes(
 
     prizes = query.order_by(models.EventPrize.created_at.desc()).all()
     return [schemas.EventPrizeResponse.model_validate(p) for p in prizes]
+
+
+@app.post("/api/events/{event_id}/participants/{participant_id}/recommend-prize")
+def recommend_prize_for_participant(
+    event_id: int,
+    participant_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Get AI recommendation for which prize to assign to a participant based on their wishlist."""
+    # Verify user is the event organizer
+    require_event_organizer(event_id, current_user, db)
+
+    # Get participant info
+    participant = db.query(models.User).filter(models.User.id == participant_id).first()
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found")
+
+    # Get participant's wishlist items for this event
+    wishlist = (
+        db.query(models.Wishlist)
+        .filter(
+            models.Wishlist.user_id == participant_id,
+            models.Wishlist.is_default == True
+        )
+        .first()
+    )
+
+    wishlist_items = []
+    if wishlist:
+        items = (
+            db.query(models.WishlistItem)
+            .join(models.WishlistItemEvent)
+            .filter(
+                models.WishlistItem.wishlist_id == wishlist.id,
+                models.WishlistItemEvent.event_id == event_id
+            )
+            .all()
+        )
+        wishlist_items = [
+            {
+                "title": item.title,
+                "description": item.description,
+                "category": item.category,
+                "price_min": item.price_min,
+                "price_max": item.price_max,
+            }
+            for item in items
+        ]
+
+    # Get available prizes
+    available_prizes = (
+        db.query(models.EventPrize)
+        .filter(
+            models.EventPrize.event_id == event_id,
+            models.EventPrize.status == "available"
+        )
+        .all()
+    )
+
+    if not available_prizes:
+        return {
+            "recommendation": None,
+            "reasoning": "No available prizes in the pool. Please add prizes first.",
+            "search_suggestion": None
+        }
+
+    prizes_data = [
+        {
+            "id": prize.id,
+            "title": prize.title,
+            "description": prize.description,
+            "category": prize.category,
+            "price": prize.price,
+        }
+        for prize in available_prizes
+    ]
+
+    # Build analysis prompt
+    participant_interests = ", ".join(participant.interests) if participant.interests else "Not specified"
+
+    analysis_prompt = f"""You are helping an event organizer assign a gift prize to a participant. Analyze the participant's wishlist and recommend the best matching prize from the available options.
+
+Participant Info:
+- Name: {participant.full_name}
+- Age Group: {participant.age_group or 'Not specified'}
+- Interests: {participant_interests}
+
+Participant's Wishlist Items ({len(wishlist_items)} items):
+{chr(10).join([f"- {item['title']} ({item['category']}, ${item['price_min']}-${item.get('price_max', item['price_min'])}): {item.get('description', 'No description')}" for item in wishlist_items]) if wishlist_items else "No wishlist items specified for this event."}
+
+Available Prizes in Pool ({len(available_prizes)} options):
+{chr(10).join([f"- Prize #{prize['id']}: {prize['title']} (${prize.get('price', 'N/A')}): {prize.get('description', 'No description')}" for prize in prizes_data])}
+
+Please provide:
+1. Your recommended prize ID (or null if none are good matches)
+2. A brief, friendly explanation of why this prize is a good match
+3. If no prizes match well, suggest a specific product to search for on Exa that would match their wishlist
+
+Respond in JSON format:
+{{
+  "recommended_prize_id": number or null,
+  "reasoning": "string",
+  "search_suggestion": "string or null"
+}}"""
+
+    try:
+        # Use a simple Claude API call for recommendation
+        import anthropic
+
+        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1024,
+            messages=[
+                {"role": "user", "content": analysis_prompt}
+            ]
+        )
+
+        import json
+        response_text = message.content[0].text
+
+        # Try to extract JSON from the response
+        if "```json" in response_text:
+            json_start = response_text.find("```json") + 7
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+
+        recommendation = json.loads(response_text)
+
+        # Add the prize details if recommended
+        if recommendation.get("recommended_prize_id"):
+            recommended_prize = next(
+                (p for p in available_prizes if p.id == recommendation["recommended_prize_id"]),
+                None
+            )
+            if recommended_prize:
+                recommendation["prize"] = schemas.EventPrizeResponse.model_validate(recommended_prize).model_dump()
+
+        return recommendation
+
+    except Exception as e:
+        print(f"Error generating recommendation: {e}")
+        import traceback
+        traceback.print_exc()
+
+        # Fallback to simple matching
+        if wishlist_items and available_prizes:
+            # Simple category match
+            for item in wishlist_items:
+                for prize in available_prizes:
+                    if prize.category and item["category"] and prize.category.lower() == item["category"].lower():
+                        return {
+                            "recommended_prize_id": prize.id,
+                            "reasoning": f"This prize matches the category '{item['category']}' from their wishlist.",
+                            "search_suggestion": None,
+                            "prize": schemas.EventPrizeResponse.model_validate(prize).model_dump()
+                        }
+
+        return {
+            "recommended_prize_id": available_prizes[0].id if available_prizes else None,
+            "reasoning": "Unable to generate AI recommendation. Showing first available prize.",
+            "search_suggestion": None
+        }
 
 
 @app.patch("/api/events/{event_id}/prizes/{prize_id}/assign", response_model=schemas.EventPrizeResponse)

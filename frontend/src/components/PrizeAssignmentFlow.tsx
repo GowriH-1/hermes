@@ -26,6 +26,25 @@ interface EventPrize {
   recipient_id?: number;
 }
 
+interface WishlistItem {
+  id: number;
+  title: string;
+  description?: string;
+  url?: string;
+  image_url?: string;
+  price_min: number;
+  price_max?: number;
+  category: string;
+  priority: number;
+}
+
+interface Recommendation {
+  recommended_prize_id?: number;
+  reasoning: string;
+  search_suggestion?: string;
+  prize?: EventPrize;
+}
+
 interface PrizeAssignmentFlowProps {
   eventId: number;
 }
@@ -38,10 +57,23 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [loadingWishlist, setLoadingWishlist] = useState(false);
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [loadingRecommendation, setLoadingRecommendation] = useState(false);
 
   useEffect(() => {
     loadData();
   }, [eventId]);
+
+  useEffect(() => {
+    if (selectedParticipant) {
+      loadParticipantWishlist(selectedParticipant.id);
+    } else {
+      setWishlistItems([]);
+      setRecommendation(null);
+    }
+  }, [selectedParticipant]);
 
   const loadData = async () => {
     try {
@@ -55,6 +87,43 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadParticipantWishlist = async (participantId: number) => {
+    setLoadingWishlist(true);
+    setRecommendation(null);
+    try {
+      const items = await apiClient.getParticipantWishlistItems(eventId, participantId);
+      setWishlistItems(items);
+    } catch (error) {
+      console.error('Failed to load wishlist:', error);
+      setWishlistItems([]);
+    } finally {
+      setLoadingWishlist(false);
+    }
+  };
+
+  const handleGetRecommendation = async () => {
+    if (!selectedParticipant) return;
+
+    setLoadingRecommendation(true);
+    try {
+      const rec = await apiClient.getRecommendedPrize(eventId, selectedParticipant.id);
+      setRecommendation(rec);
+
+      // Auto-select the recommended prize if available
+      if (rec.prize) {
+        const recommendedPrize = prizes.find((p) => p.id === rec.prize?.id);
+        if (recommendedPrize) {
+          setSelectedPrize(recommendedPrize);
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to get recommendation:', error);
+      alert(error.response?.data?.detail || 'Failed to get recommendation');
+    } finally {
+      setLoadingRecommendation(false);
     }
   };
 
@@ -200,28 +269,121 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
           />
         </div>
 
-        {/* Prizes Section */}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Select Prize ({availablePrizes.length})
-          </h3>
-          {availablePrizes.length === 0 ? (
-            <Card className="p-8 text-center text-gray-500">
-              No available prizes in the pool. Add prizes in the Prize Pool tab first.
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {availablePrizes.map((prize, index) => (
-                <PrizeSelectionCard
-                  key={prize.id}
-                  prize={prize}
-                  isSelected={selectedPrize?.id === prize.id}
-                  onSelect={() => setSelectedPrize(prize)}
-                  index={index}
-                />
-              ))}
+        {/* Wishlist & Prizes Section */}
+        <div className="space-y-6">
+          {/* Participant Wishlist */}
+          {selectedParticipant && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {selectedParticipant.full_name}'s Wishlist ({wishlistItems.length})
+                </h3>
+                <Button
+                  onClick={handleGetRecommendation}
+                  disabled={loadingRecommendation || wishlistItems.length === 0 || availablePrizes.length === 0}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm"
+                >
+                  {loadingRecommendation ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    '🤖 Get AI Recommendation'
+                  )}
+                </Button>
+              </div>
+
+              {loadingWishlist ? (
+                <Card className="p-8 text-center">
+                  <Loader2 className="animate-spin mx-auto text-primary-500" size={32} />
+                </Card>
+              ) : wishlistItems.length === 0 ? (
+                <Card className="p-6 text-center text-gray-500">
+                  <p>This participant hasn't added any wishlist items for this event yet.</p>
+                </Card>
+              ) : (
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {wishlistItems.map((item) => (
+                    <Card key={item.id} className="p-4">
+                      <div className="flex items-center gap-3">
+                        {item.image_url && (
+                          <img
+                            src={item.image_url}
+                            alt={item.title}
+                            className="w-12 h-12 object-cover rounded-lg"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                            {item.title}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {item.category} • ${item.price_min}
+                            {item.price_max && item.price_max !== item.price_min && `-$${item.price_max}`}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            item.priority === 1
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              : item.priority === 2
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          }`}>
+                            Priority {item.priority}
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* AI Recommendation */}
+              {recommendation && (
+                <Card className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-2 border-purple-200 dark:border-purple-800 mt-4">
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl">🤖</div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900 dark:text-white mb-2">AI Recommendation</h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{recommendation.reasoning}</p>
+                      {recommendation.search_suggestion && (
+                        <p className="text-sm text-purple-600 dark:text-purple-400">
+                          💡 Suggestion: Search for "{recommendation.search_suggestion}"
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              )}
             </div>
           )}
+
+          {/* Prizes Section */}
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Available Prizes ({availablePrizes.length})
+            </h3>
+            {availablePrizes.length === 0 ? (
+              <Card className="p-8 text-center text-gray-500">
+                No available prizes in the pool. Add prizes in the Prize Pool tab first.
+              </Card>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {availablePrizes.map((prize, index) => (
+                  <PrizeSelectionCard
+                    key={prize.id}
+                    prize={prize}
+                    isSelected={selectedPrize?.id === prize.id}
+                    onSelect={() => setSelectedPrize(prize)}
+                    index={index}
+                    isRecommended={recommendation?.recommended_prize_id === prize.id}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -233,11 +395,13 @@ interface PrizeSelectionCardProps {
   isSelected: boolean;
   onSelect: () => void;
   index: number;
+  isRecommended?: boolean;
 }
 
 const PrizeSelectionCard: React.FC<PrizeSelectionCardProps> = ({
   prize,
   isSelected,
+  isRecommended,
   onSelect,
   index,
 }) => {
@@ -250,13 +414,20 @@ const PrizeSelectionCard: React.FC<PrizeSelectionCardProps> = ({
       transition={{ delay: index * 0.05 }}
     >
       <Card
-        className={`p-4 cursor-pointer transition-all ${
+        className={`p-4 cursor-pointer transition-all relative ${
           isSelected
             ? 'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-950/20'
+            : isRecommended
+            ? 'ring-2 ring-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'
             : 'hover:shadow-lg'
         }`}
         onClick={onSelect}
       >
+        {isRecommended && (
+          <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
+            🤖 Recommended
+          </div>
+        )}
         <div className="flex items-center gap-4">
           {/* Image */}
           <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">

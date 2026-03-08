@@ -190,6 +190,16 @@ class ApiClient {
     return response.data;
   }
 
+  async getParticipantWishlistItems(eventId: number, participantId: number) {
+    const response = await this.client.get(`/api/events/${eventId}/participants/${participantId}/wishlist-items`);
+    return response.data;
+  }
+
+  async getRecommendedPrize(eventId: number, participantId: number) {
+    const response = await this.client.post(`/api/events/${eventId}/participants/${participantId}/recommend-prize`);
+    return response.data;
+  }
+
   // Product Search (Exa)
   async searchProducts(query: string, maxResults: number = 10, priceMin?: number, priceMax?: number) {
     const response = await this.client.post('/api/search/products', {
