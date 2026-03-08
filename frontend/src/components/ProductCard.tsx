@@ -20,20 +20,21 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAdd, isAdding, buttonText = '+ Add to Wishlist' }) => {
+  const [imageError, setImageError] = React.useState(false);
+
   return (
     <Card className="flex flex-col h-full hover:shadow-lg transition-shadow border-pink-100/50">
-      <div className="relative h-48 w-full overflow-hidden bg-gray-100 rounded-t-lg">
-        {product.image_url ? (
-          <img 
-            src={product.image_url} 
-            alt={product.title} 
+      <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-t-lg">
+        {product.image_url && !imageError ? (
+          <img
+            src={product.image_url}
+            alt={product.title}
             className="h-full w-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://placehold.co/400x300?text=No+Image';
-            }}
+            crossOrigin="anonymous"
+            onError={() => setImageError(true)}
           />
         ) : (
-          <div className="h-full w-full flex items-center justify-center text-gray-400">
+          <div className="h-full w-full flex items-center justify-center text-gray-400 dark:text-gray-600">
             <ShoppingCart size={48} strokeWidth={1} />
           </div>
         )}

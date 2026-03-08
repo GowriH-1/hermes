@@ -307,13 +307,23 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                   {wishlistItems.map((item) => (
                     <Card key={item.id} className="p-4">
                       <div className="flex items-center gap-3">
-                        {item.image_url && (
-                          <img
-                            src={item.image_url}
-                            alt={item.title}
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                        )}
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 flex-shrink-0">
+                          {item.image_url ? (
+                            <img
+                              src={item.image_url}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                              crossOrigin="anonymous"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-600">
+                              <Gift size={20} strokeWidth={1.5} />
+                            </div>
+                          )}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-gray-900 dark:text-white truncate">
                             {item.title}
@@ -405,7 +415,7 @@ const PrizeSelectionCard: React.FC<PrizeSelectionCardProps> = ({
   onSelect,
   index,
 }) => {
-  const placeholder = 'https://via.placeholder.com/100x100?text=Prize';
+  const [imageError, setImageError] = React.useState(false);
 
   return (
     <motion.div
@@ -430,15 +440,20 @@ const PrizeSelectionCard: React.FC<PrizeSelectionCardProps> = ({
         )}
         <div className="flex items-center gap-4">
           {/* Image */}
-          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
-            <img
-              src={prize.image_url || placeholder}
-              alt={prize.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = placeholder;
-              }}
-            />
+          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-950/30 dark:to-pink-950/30 flex-shrink-0">
+            {prize.image_url && !imageError ? (
+              <img
+                src={prize.image_url}
+                alt={prize.title}
+                className="w-full h-full object-cover"
+                crossOrigin="anonymous"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-600">
+                <Gift size={24} strokeWidth={1.5} />
+              </div>
+            )}
           </div>
 
           {/* Details */}

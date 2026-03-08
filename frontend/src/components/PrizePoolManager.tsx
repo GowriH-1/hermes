@@ -253,7 +253,7 @@ interface PrizeCardProps {
 }
 
 const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onDelete, index = 0, showStatus = false }) => {
-  const placeholder = 'https://via.placeholder.com/400x300?text=Prize';
+  const [imageError, setImageError] = React.useState(false);
 
   return (
     <motion.div
@@ -263,14 +263,19 @@ const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onDelete, index = 0, showS
     >
       <Card className="overflow-hidden">
         <div className="relative h-32 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-950/30 dark:to-pink-950/30">
-          <img
-            src={prize.image_url || placeholder}
-            alt={prize.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = placeholder;
-            }}
-          />
+          {prize.image_url && !imageError ? (
+            <img
+              src={prize.image_url}
+              alt={prize.title}
+              className="w-full h-full object-cover"
+              crossOrigin="anonymous"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-600">
+              <Gift size={32} strokeWidth={1.5} />
+            </div>
+          )}
           {showStatus && (
             <div className="absolute top-2 right-2">
               <span
