@@ -7,6 +7,12 @@ import { Input } from './ui/Input';
 import ProductCard, { type ExaProduct } from './ProductCard';
 import { apiClient } from '../services/api';
 
+interface Participant {
+  id: number;
+  full_name: string;
+  username: string;
+}
+
 interface EventPrize {
   id: number;
   title: string;
@@ -17,7 +23,9 @@ interface EventPrize {
   category?: string;
   status: string;
   recipient_id?: number;
+  rank?: number;
   created_at: string;
+  recipient?: Participant;
 }
 
 interface PrizePoolManagerProps {
@@ -51,8 +59,20 @@ export const PrizePoolManager: React.FC<PrizePoolManagerProps> = ({ eventId }) =
 
   const loadPrizes = async () => {
     try {
-      const data = await apiClient.getEventPrizes(eventId);
-      setPrizes(data);
+      const [prizesData, participantsData] = await Promise.all([
+        apiClient.getEventPrizes(eventId),
+        apiClient.getEventParticipants(eventId, 'participant'),
+      ]);
+
+      // Match prizes with recipients
+      const prizesWithRecipients = prizesData.map((prize: EventPrize) => ({
+        ...prize,
+        recipient: prize.recipient_id
+          ? participantsData.find((p: Participant) => p.id === prize.recipient_id)
+          : undefined,
+      }));
+
+      setPrizes(prizesWithRecipients);
     } catch (error) {
       console.error('Failed to load prizes:', error);
     } finally {
@@ -298,6 +318,25 @@ const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onDelete, index = 0, showS
           {prize.price && (
             <p className="text-lg font-bold text-primary-500 mb-2">${prize.price}</p>
           )}
+
+          {/* Show recipient for assigned/fulfilled prizes */}
+          {showStatus && prize.recipient && (
+            <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Assigned to:</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                {prize.recipient.full_name}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-500">
+                @{prize.recipient.username}
+              </p>
+              {prize.rank && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-semibold">
+                  Rank: #{prize.rank}
+                </p>
+              )}
+            </div>
+          )}
+
           {prize.description && (
             <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
               {prize.description}
