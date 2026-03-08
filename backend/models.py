@@ -57,6 +57,7 @@ class Event(Base):
     event_date = Column(DateTime)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     invite_code = Column(String, unique=True, index=True, nullable=False)
+    budget = Column(Float, default=0)  # Total budget for prizes
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

@@ -86,6 +86,11 @@ class ApiClient {
     return response.data;
   }
 
+  async updateEvent(eventId: number, data: any) {
+    const response = await this.client.patch(`/api/events/${eventId}`, data);
+    return response.data;
+  }
+
   async getEventWishlistItems(eventId: number) {
     const response = await this.client.get(`/api/events/${eventId}/wishlist-items`);
     return response.data;

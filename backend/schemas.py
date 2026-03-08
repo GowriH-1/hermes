@@ -64,6 +64,7 @@ class EventCreate(BaseModel):
     description: Optional[str] = None
     event_type: str  # 'hackathon', 'birthday', 'wedding', 'other'
     event_date: Optional[datetime] = None
+    budget: Optional[float] = 0
 
 
 class EventJoin(BaseModel):
@@ -71,6 +72,12 @@ class EventJoin(BaseModel):
 
     invite_code: str
     role: str = Field(..., pattern="^(participant|sponsor)$")
+
+
+class EventUpdate(BaseModel):
+    """Schema for updating event details."""
+
+    budget: Optional[float] = None
 
 
 class EventResponse(BaseModel):
@@ -83,6 +90,7 @@ class EventResponse(BaseModel):
     event_date: Optional[datetime]
     created_by: int
     invite_code: str
+    budget: Optional[float] = 0
     created_at: datetime
     participant_count: Optional[int] = None
     role: Optional[str] = None  # User's role in this event (participant/sponsor)

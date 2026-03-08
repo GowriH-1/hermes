@@ -30,6 +30,14 @@ interface Event {
   created_by: number;
   invite_code: string;
   participant_count?: number;
+  budget?: number;
+}
+
+interface EventPrize {
+  id: number;
+  title: string;
+  price?: number;
+  status: string;
 }
 
 const OrganizerEventView: React.FC = () => {
@@ -42,6 +50,9 @@ const OrganizerEventView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'pool' | 'assign' | 'standings'>('pool');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [prizes, setPrizes] = useState<EventPrize[]>([]);
+  const [editingBudget, setEditingBudget] = useState(false);
+  const [budgetInput, setBudgetInput] = useState('');
 
   useEffect(() => {
     loadData();
@@ -51,8 +62,14 @@ const OrganizerEventView: React.FC = () => {
     try {
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
-      const eventData = await apiClient.getEvent(eventId);
+      const [eventData, prizesData] = await Promise.all([
+        apiClient.getEvent(eventId),
+        apiClient.getEventPrizes(eventId),
+      ]);
+
       setEvent(eventData);
+      setPrizes(prizesData);
+      setBudgetInput(eventData.budget?.toString() || '0');
 
       // Check if user is the organizer
       if (eventData.created_by !== userData.id) {
@@ -81,6 +98,27 @@ const OrganizerEventView: React.FC = () => {
       setShowDeleteConfirm(false);
     }
   };
+
+  const handleSaveBudget = async () => {
+    try {
+      const newBudget = parseFloat(budgetInput) || 0;
+      const updatedEvent = await apiClient.updateEvent(eventId, { budget: newBudget });
+      setEvent(updatedEvent);
+      setEditingBudget(false);
+    } catch (error: any) {
+      console.error('Failed to update budget:', error);
+      alert(error.response?.data?.detail || 'Failed to update budget');
+    }
+  };
+
+  // Calculate spent budget
+  const spentBudget = prizes
+    .filter(p => p.status === 'assigned' || p.status === 'fulfilled')
+    .reduce((sum, p) => sum + (p.price || 0), 0);
+
+  const totalBudget = event?.budget || 0;
+  const remainingBudget = totalBudget - spentBudget;
+  const budgetPercentage = totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
 
   if (loading) {
     return (
@@ -167,11 +205,128 @@ const OrganizerEventView: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Stats Cards */}
+        {/* Budget Tracker */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <Card className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                  Prize Budget
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Track your spending on prizes
+                </p>
+              </div>
+              {!editingBudget ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setEditingBudget(true)}
+                >
+                  {totalBudget > 0 ? 'Edit Budget' : 'Set Budget'}
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={budgetInput}
+                    onChange={(e) => setBudgetInput(e.target.value)}
+                    placeholder="Enter budget"
+                    className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    style={{ width: '140px' }}
+                  />
+                  <Button size="sm" onClick={handleSaveBudget}>
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingBudget(false);
+                      setBudgetInput(event?.budget?.toString() || '0');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {totalBudget > 0 ? (
+              <>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      Total Budget
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      ${totalBudget.toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      Spent
+                    </p>
+                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                      ${spentBudget.toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      Remaining
+                    </p>
+                    <p className={`text-2xl font-bold ${
+                      remainingBudget >= 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      ${Math.abs(remainingBudget).toFixed(2)}
+                      {remainingBudget < 0 && ' over'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="relative w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className={`absolute top-0 left-0 h-full transition-all duration-500 ${
+                      budgetPercentage > 100
+                        ? 'bg-red-500'
+                        : budgetPercentage > 80
+                        ? 'bg-yellow-500'
+                        : 'bg-green-500'
+                    }`}
+                    style={{ width: `${Math.min(budgetPercentage, 100)}%` }}
+                  />
+                  {budgetPercentage > 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-white drop-shadow">
+                        {budgetPercentage.toFixed(0)}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-gray-600 dark:text-gray-400">
+                  Set a budget to track your prize spending
+                </p>
+              </div>
+            )}
+          </Card>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
         >
           <StatsCard

@@ -229,6 +229,7 @@ def create_event(
         event_date=event_data.event_date,
         created_by=current_user.id,
         invite_code=invite_code,
+        budget=event_data.budget or 0,
     )
 
     db.add(new_event)
@@ -460,6 +461,35 @@ def leave_event(
     db.commit()
 
     return {"message": "Successfully left the event"}
+
+
+@app.patch("/api/events/{event_id}", response_model=schemas.EventResponse)
+def update_event(
+    event_id: int,
+    event_data: schemas.EventUpdate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Update event details (organizer only)."""
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    # Only event creator can update
+    if event.created_by != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the event organizer can update event details"
+        )
+
+    # Update budget if provided
+    if event_data.budget is not None:
+        event.budget = event_data.budget
+
+    db.commit()
+    db.refresh(event)
+
+    return schemas.EventResponse.model_validate(event)
 
 
 @app.get("/api/events/{event_id}/wishlist-items", response_model=List[schemas.WishlistItemResponse])
