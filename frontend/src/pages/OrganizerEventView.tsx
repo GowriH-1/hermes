@@ -5,6 +5,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { PrizePoolManager } from '../components/PrizePoolManager';
 import { PrizeAssignmentFlow } from '../components/PrizeAssignmentFlow';
+import { PrizeStandings } from '../components/PrizeStandings';
 import {
   Crown,
   Gift,
@@ -15,6 +16,7 @@ import {
   Loader2,
   Award,
   Trash2,
+  Trophy,
 } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { TopNav } from '../components/TopNav';
@@ -37,7 +39,7 @@ const OrganizerEventView: React.FC = () => {
 
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'pool' | 'assign'>('pool');
+  const [activeTab, setActiveTab] = useState<'pool' | 'assign' | 'standings'>('pool');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -170,7 +172,7 @@ const OrganizerEventView: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
+          className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
         >
           <StatsCard
             icon={<Gift className="w-6 h-6 text-purple-500" />}
@@ -183,6 +185,12 @@ const OrganizerEventView: React.FC = () => {
             label="Assign Prizes"
             value="Start"
             onClick={() => setActiveTab('assign')}
+          />
+          <StatsCard
+            icon={<Trophy className="w-6 h-6 text-yellow-500" />}
+            label="Winners"
+            value="View"
+            onClick={() => setActiveTab('standings')}
           />
           <StatsCard
             icon={<Users className="w-6 h-6 text-green-500" />}
@@ -226,6 +234,19 @@ const OrganizerEventView: React.FC = () => {
                   Assign Prizes
                 </span>
               </button>
+              <button
+                onClick={() => setActiveTab('standings')}
+                className={`pb-4 px-1 border-b-2 font-semibold transition-colors ${
+                  activeTab === 'standings'
+                    ? 'border-primary-500 text-primary-500'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5" />
+                  Winners
+                </span>
+              </button>
             </nav>
           </div>
         </motion.div>
@@ -239,6 +260,7 @@ const OrganizerEventView: React.FC = () => {
         >
           {activeTab === 'pool' && <PrizePoolManager eventId={eventId} />}
           {activeTab === 'assign' && <PrizeAssignmentFlow eventId={eventId} />}
+          {activeTab === 'standings' && <PrizeStandings eventId={eventId} />}
         </motion.div>
       </div>
 
