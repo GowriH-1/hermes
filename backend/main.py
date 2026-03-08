@@ -304,7 +304,19 @@ def get_event(
     if not participation:
         raise HTTPException(status_code=403, detail="Not authorized to view this event")
 
-    return schemas.EventResponse.model_validate(event)
+    # Convert to response with participant count and role
+    event_dict = schemas.EventResponse.model_validate(event).model_dump()
+    event_dict['role'] = participation.role
+
+    # Add participant count
+    participant_count = (
+        db.query(models.EventParticipant)
+        .filter(models.EventParticipant.event_id == event_id)
+        .count()
+    )
+    event_dict['participant_count'] = participant_count
+
+    return schemas.EventResponse(**event_dict)
 
 
 @app.post("/api/events/join", response_model=schemas.EventResponse)
