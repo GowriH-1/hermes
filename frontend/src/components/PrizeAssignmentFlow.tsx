@@ -314,14 +314,26 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
         {/* Participants Section */}
         <div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Select Participant ({participants.length})
+            Select Participant ({participants.length} available)
           </h3>
-          <ParticipantList
-            participants={participants}
-            onSelectParticipant={setSelectedParticipant}
-            selectedParticipantId={selectedParticipant?.id}
-            showSelection
-          />
+          {participants.length === 0 ? (
+            <Card className="p-12 text-center">
+              <div className="text-6xl mb-4">🎉</div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                All Participants Have Received Prizes!
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Every participant in this event has already been assigned a prize. Check the "Winners" tab to see the full leaderboard.
+              </p>
+            </Card>
+          ) : (
+            <ParticipantList
+              participants={participants}
+              onSelectParticipant={setSelectedParticipant}
+              selectedParticipantId={selectedParticipant?.id}
+              showSelection
+            />
+          )}
         </div>
 
         {/* Wishlist & Prizes Section */}
@@ -444,19 +456,22 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
           )}
 
           {/* Prizes Section */}
-          <div className="pt-6 border-t-2 border-gray-200 dark:border-gray-700">
-            <div className="mb-4">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Or Select from Prize Pool ({availablePrizes.length})
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Click on a prize from your pool to select it, then click "Assign Prize" button
-              </p>
-            </div>
-            {availablePrizes.length === 0 ? (
-              <Card className="p-8 text-center text-gray-500">
-                No available prizes in the pool. Add prizes in the Prize Pool tab first.
-              </Card>
+          {selectedParticipant && (
+            <div className="pt-6 border-t-2 border-gray-200 dark:border-gray-700">
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Or Select from Prize Pool ({availablePrizes.length})
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Click on a prize from your pool to select it, then click "Assign Prize" button
+                </p>
+              </div>
+              {availablePrizes.length === 0 ? (
+                <Card className="p-8 text-center text-gray-500">
+                  <div className="text-4xl mb-4">📦</div>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-2">No Prizes in Pool</h3>
+                  <p className="text-sm">Go to the "Prize Pool" tab to add prizes before assigning them.</p>
+                </Card>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {availablePrizes.map((prize, index) => (
@@ -471,7 +486,8 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
