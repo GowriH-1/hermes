@@ -54,6 +54,7 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
   const [prizes, setPrizes] = useState<EventPrize[]>([]);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [selectedPrize, setSelectedPrize] = useState<EventPrize | null>(null);
+  const [selectedWishlistItem, setSelectedWishlistItem] = useState<WishlistItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -69,9 +70,14 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
   useEffect(() => {
     if (selectedParticipant) {
       loadParticipantWishlist(selectedParticipant.id);
+      // Clear selections when participant changes
+      setSelectedPrize(null);
+      setSelectedWishlistItem(null);
     } else {
       setWishlistItems([]);
       setRecommendation(null);
+      setSelectedPrize(null);
+      setSelectedWishlistItem(null);
     }
   }, [selectedParticipant]);
 
@@ -127,58 +133,51 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
     }
   };
 
-  const handleAssignWishlistItem = async (item: WishlistItem) => {
-    if (!selectedParticipant) return;
+  const handleSelectWishlistItem = (item: WishlistItem) => {
+    setSelectedWishlistItem(item);
+    setSelectedPrize(null); // Clear prize selection
+  };
 
-    setAssigning(true);
-    try {
-      // First create a prize from the wishlist item
-      const newPrize = await apiClient.createEventPrize(eventId, {
-        event_id: eventId,
-        title: item.title,
-        description: item.description || '',
-        url: item.url || '',
-        image_url: item.image_url || '',
-        price: item.price_min,
-        category: item.category,
-        exa_metadata: {},
-      });
-
-      // Then assign it to the participant
-      await apiClient.assignPrize(eventId, newPrize.id, selectedParticipant.id);
-
-      setSuccessMessage(
-        `Successfully assigned "${item.title}" to ${selectedParticipant.full_name}!`
-      );
-
-      // Reset selection and reload data
-      setSelectedParticipant(null);
-      setSelectedPrize(null);
-      await loadData();
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error: any) {
-      console.error('Failed to assign wishlist item:', error);
-      alert(error.response?.data?.detail || 'Failed to assign prize from wishlist');
-    } finally {
-      setAssigning(false);
-    }
+  const handleSelectPrize = (prize: EventPrize) => {
+    setSelectedPrize(prize);
+    setSelectedWishlistItem(null); // Clear wishlist item selection
   };
 
   const handleAssignPrize = async () => {
-    if (!selectedParticipant || !selectedPrize) return;
+    if (!selectedParticipant) return;
+    if (!selectedPrize && !selectedWishlistItem) return;
 
     setAssigning(true);
     try {
-      await apiClient.assignPrize(eventId, selectedPrize.id, selectedParticipant.id);
+      let prizeToAssign = selectedPrize;
+
+      // If a wishlist item is selected, create a prize from it first
+      if (selectedWishlistItem) {
+        prizeToAssign = await apiClient.createEventPrize(eventId, {
+          event_id: eventId,
+          title: selectedWishlistItem.title,
+          description: selectedWishlistItem.description || '',
+          url: selectedWishlistItem.url || '',
+          image_url: selectedWishlistItem.image_url || '',
+          price: selectedWishlistItem.price_min,
+          category: selectedWishlistItem.category,
+          exa_metadata: {},
+        });
+      }
+
+      if (!prizeToAssign) return;
+
+      // Assign the prize
+      await apiClient.assignPrize(eventId, prizeToAssign.id, selectedParticipant.id);
+
       setSuccessMessage(
-        `Successfully assigned "${selectedPrize.title}" to ${selectedParticipant.full_name}!`
+        `Successfully assigned "${prizeToAssign.title}" to ${selectedParticipant.full_name}!`
       );
 
       // Reset selection and reload data
       setSelectedParticipant(null);
       setSelectedPrize(null);
+      setSelectedWishlistItem(null);
       await loadData();
 
       // Clear success message after 3 seconds
@@ -251,17 +250,21 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
           <div className="flex-1">
             <div
               className={`p-4 rounded-lg border-2 transition-all ${
-                selectedPrize
+                selectedPrize || selectedWishlistItem
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20'
                   : 'border-gray-300 dark:border-gray-600'
               }`}
             >
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Step 2: Select Prize
+                Step 2: Select Prize or Wishlist Item
               </p>
               {selectedPrize ? (
                 <p className="text-gray-900 dark:text-white font-semibold">
-                  {selectedPrize.title}
+                  {selectedPrize.title} <span className="text-xs text-gray-500">(from pool)</span>
+                </p>
+              ) : selectedWishlistItem ? (
+                <p className="text-gray-900 dark:text-white font-semibold">
+                  {selectedWishlistItem.title} <span className="text-xs text-gray-500">(from wishlist)</span>
                 </p>
               ) : (
                 <p className="text-gray-500 text-sm">No prize selected</p>
@@ -275,7 +278,7 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
           <div className="flex-1">
             <Button
               onClick={handleAssignPrize}
-              disabled={!selectedParticipant || !selectedPrize || assigning}
+              disabled={!selectedParticipant || (!selectedPrize && !selectedWishlistItem) || assigning}
               className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-4"
             >
               {assigning ? (
@@ -320,7 +323,7 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                       {selectedParticipant.full_name}'s Wishlist ({wishlistItems.length})
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      💡 Click on an item to assign it directly, or select from your prize pool below
+                      💡 Click to select an item, then click "Assign Prize" button below
                     </p>
                   </div>
                   <Button
@@ -353,8 +356,12 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                   {wishlistItems.map((item) => (
                     <Card
                       key={item.id}
-                      className="p-4 cursor-pointer hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all group"
-                      onClick={() => handleAssignWishlistItem(item)}
+                      className={`p-4 cursor-pointer transition-all group ${
+                        selectedWishlistItem?.id === item.id
+                          ? 'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-950/20 shadow-lg'
+                          : 'hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600'
+                      }`}
+                      onClick={() => handleSelectWishlistItem(item)}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 flex-shrink-0">
@@ -444,7 +451,7 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                     key={prize.id}
                     prize={prize}
                     isSelected={selectedPrize?.id === prize.id}
-                    onSelect={() => setSelectedPrize(prize)}
+                    onSelect={() => handleSelectPrize(prize)}
                     index={index}
                     isRecommended={recommendation?.recommended_prize_id === prize.id}
                   />
