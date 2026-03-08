@@ -319,6 +319,51 @@ def get_event(
     return schemas.EventResponse(**event_dict)
 
 
+@app.delete("/api/events/{event_id}")
+def delete_event(
+    event_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Delete an event (organizer only)."""
+    # Verify user is the event organizer
+    event = require_event_organizer(event_id, current_user, db)
+
+    # Delete all related data (cascade deletes will handle most of this automatically)
+    # But we'll be explicit for clarity
+
+    # Delete event participants
+    db.query(models.EventParticipant).filter(
+        models.EventParticipant.event_id == event_id
+    ).delete()
+
+    # Delete event prizes
+    db.query(models.EventPrize).filter(
+        models.EventPrize.event_id == event_id
+    ).delete()
+
+    # Delete gifts
+    db.query(models.Gift).filter(
+        models.Gift.event_id == event_id
+    ).delete()
+
+    # Delete wishlist item events
+    db.query(models.WishlistItemEvent).filter(
+        models.WishlistItemEvent.event_id == event_id
+    ).delete()
+
+    # Delete sponsor preferences
+    db.query(models.SponsorPreference).filter(
+        models.SponsorPreference.event_id == event_id
+    ).delete()
+
+    # Finally, delete the event itself
+    db.delete(event)
+    db.commit()
+
+    return {"message": "Event deleted successfully"}
+
+
 @app.post("/api/events/join", response_model=schemas.EventResponse)
 def join_event(
     join_data: schemas.EventJoin,

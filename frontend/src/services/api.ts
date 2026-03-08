@@ -81,6 +81,11 @@ class ApiClient {
     return response.data;
   }
 
+  async deleteEvent(eventId: number) {
+    const response = await this.client.delete(`/api/events/${eventId}`);
+    return response.data;
+  }
+
   async getEventWishlistItems(eventId: number) {
     const response = await this.client.get(`/api/events/${eventId}/wishlist-items`);
     return response.data;

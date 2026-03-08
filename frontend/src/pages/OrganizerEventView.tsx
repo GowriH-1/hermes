@@ -14,6 +14,7 @@ import {
   Eye,
   Loader2,
   Award,
+  Trash2,
 } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { TopNav } from '../components/TopNav';
@@ -37,6 +38,8 @@ const OrganizerEventView: React.FC = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pool' | 'assign'>('pool');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -60,6 +63,20 @@ const OrganizerEventView: React.FC = () => {
       navigate('/');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    try {
+      setDeleting(true);
+      await apiClient.deleteEvent(eventId);
+      navigate('/event-management');
+    } catch (error: any) {
+      console.error('Failed to delete event:', error);
+      alert(error.response?.data?.detail || 'Failed to delete event');
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -136,6 +153,14 @@ const OrganizerEventView: React.FC = () => {
                   View as Sponsor
                 </Button>
               </Link>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-300 dark:border-red-800"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Event
+              </Button>
             </div>
           </div>
         </motion.div>
@@ -216,6 +241,67 @@ const OrganizerEventView: React.FC = () => {
           {activeTab === 'assign' && <PrizeAssignmentFlow eventId={eventId} />}
         </motion.div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-[#0a0a0a] rounded-lg p-6 max-w-md w-full border border-gray-200 dark:border-gray-700"
+          >
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                  Delete Event
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Are you sure you want to delete "{event?.name}"? This will permanently delete:
+                </p>
+                <ul className="text-sm text-gray-600 dark:text-gray-300 mt-2 ml-4 list-disc">
+                  <li>All participant data</li>
+                  <li>All prizes and assignments</li>
+                  <li>All sponsor matches</li>
+                  <li>All event-linked wishlist items</li>
+                </ul>
+                <p className="text-sm font-semibold text-red-600 dark:text-red-400 mt-2">
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteEvent}
+                disabled={deleting}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Event
+                  </>
+                )}
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
