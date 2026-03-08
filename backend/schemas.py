@@ -208,6 +208,59 @@ class GiftResponse(BaseModel):
 
 
 # ============================================================================
+# Event Prize Schemas (Organizer)
+# ============================================================================
+
+
+class EventPrizeCreate(BaseModel):
+    """Schema for creating an event prize."""
+
+    event_id: int
+    title: str
+    description: Optional[str] = None
+    url: Optional[str] = None
+    image_url: Optional[str] = None
+    price: Optional[float] = None
+    category: Optional[str] = None
+    exa_metadata: dict = {}
+    notes: Optional[str] = None
+
+
+class EventPrizeUpdate(BaseModel):
+    """Schema for updating an event prize."""
+
+    title: Optional[str] = None
+    description: Optional[str] = None
+    recipient_id: Optional[int] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class EventPrizeResponse(BaseModel):
+    """Schema for event prize in responses."""
+
+    id: int
+    event_id: int
+    title: str
+    description: Optional[str]
+    url: Optional[str]
+    image_url: Optional[str]
+    price: Optional[float]
+    category: Optional[str]
+    exa_metadata: dict
+    created_by: int
+    recipient_id: Optional[int]
+    status: str
+    assigned_at: Optional[datetime]
+    fulfilled_at: Optional[datetime]
+    notes: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ============================================================================
 # Sponsor Preference Schemas
 # ============================================================================
 

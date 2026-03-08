@@ -9,6 +9,7 @@ import WishlistPage from './pages/WishlistPage';
 import EventsPage from './pages/EventsPage';
 import EventManagementPage from './pages/EventManagementPage';
 import SponsorEventView from './pages/SponsorEventView';
+import OrganizerEventView from './pages/OrganizerEventView';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -123,6 +124,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <SponsorEventView />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/events/:id/organizer"
+              element={
+                <PrivateRoute>
+                  <OrganizerEventView />
                 </PrivateRoute>
               }
             />

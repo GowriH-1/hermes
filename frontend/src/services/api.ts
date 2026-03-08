@@ -92,6 +92,11 @@ class ApiClient {
     return response.data;
   }
 
+  async getDefaultWishlist() {
+    const response = await this.client.get('/api/wishlists/default');
+    return response.data;
+  }
+
   async getWishlistItems(wishlistId: number) {
     const response = await this.client.get(`/api/wishlists/${wishlistId}/items`);
     return response.data;
@@ -136,6 +141,47 @@ class ApiClient {
 
   async getMyGifts() {
     const response = await this.client.get('/api/gifts/my-gifts');
+    return response.data;
+  }
+
+  // Event Prizes (Organizer)
+  async createEventPrize(eventId: number, data: any) {
+    const response = await this.client.post(`/api/events/${eventId}/prizes`, data);
+    return response.data;
+  }
+
+  async getEventPrizes(eventId: number, status?: string) {
+    const params = status ? { status } : {};
+    const response = await this.client.get(`/api/events/${eventId}/prizes`, { params });
+    return response.data;
+  }
+
+  async assignPrize(eventId: number, prizeId: number, recipientId: number) {
+    const response = await this.client.patch(
+      `/api/events/${eventId}/prizes/${prizeId}/assign?recipient_id=${recipientId}`,
+      {}
+    );
+    return response.data;
+  }
+
+  async updateEventPrize(eventId: number, prizeId: number, data: any) {
+    const response = await this.client.patch(`/api/events/${eventId}/prizes/${prizeId}`, data);
+    return response.data;
+  }
+
+  async deleteEventPrize(eventId: number, prizeId: number) {
+    const response = await this.client.delete(`/api/events/${eventId}/prizes/${prizeId}`);
+    return response.data;
+  }
+
+  async getEventParticipants(eventId: number, role?: string) {
+    const params = role ? { role } : {};
+    const response = await this.client.get(`/api/events/${eventId}/participants`, { params });
+    return response.data;
+  }
+
+  async getMyPrizes(eventId: number) {
+    const response = await this.client.get(`/api/events/${eventId}/my-prizes`);
     return response.data;
   }
 

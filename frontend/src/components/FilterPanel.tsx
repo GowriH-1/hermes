@@ -112,15 +112,15 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h3 className="text-lg font-bold text-gray-900">Filter Preferences</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Filter Preferences</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Set your criteria to find perfect matches
           </p>
         </div>
 
         {/* Budget Range */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Budget Range
           </label>
           <div className="flex items-center gap-3">
@@ -134,7 +134,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 className="w-full"
               />
             </div>
-            <span className="text-gray-500">to</span>
+            <span className="text-gray-500 dark:text-gray-400">to</span>
             <div className="flex-1">
               <Input
                 type="number"
@@ -146,29 +146,29 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               />
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             ${budgetMin} - ${budgetMax}
           </p>
         </div>
 
         {/* Categories */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Categories
           </label>
           <div className="space-y-2">
             {CATEGORIES.map((category) => (
               <label
                 key={category.value}
-                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded"
               >
                 <input
                   type="checkbox"
                   checked={categories.includes(category.value)}
                   onChange={() => toggleCategory(category.value)}
-                  className="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-4 h-4 text-primary-500 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-700">{category.label}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{category.label}</span>
               </label>
             ))}
           </div>
@@ -176,22 +176,22 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
         {/* Age Groups */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Age Groups
           </label>
           <div className="space-y-2">
             {AGE_GROUPS.map((ageGroup) => (
               <label
                 key={ageGroup.value}
-                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded"
               >
                 <input
                   type="checkbox"
                   checked={ageGroups.includes(ageGroup.value)}
                   onChange={() => toggleAgeGroup(ageGroup.value)}
-                  className="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-4 h-4 text-primary-500 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-700">{ageGroup.label}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{ageGroup.label}</span>
               </label>
             ))}
           </div>
@@ -199,7 +199,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
         {/* Min Score Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Minimum Match Score
           </label>
           <Input
@@ -211,20 +211,20 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             max={100}
             className="w-full"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Only show matches scoring {minScore}+ out of 100
           </p>
         </div>
 
         {/* Save Preferences */}
-        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded">
           <input
             type="checkbox"
             checked={savePreferences}
             onChange={(e) => setSavePreferences(e.target.checked)}
-            className="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500"
+            className="w-4 h-4 text-primary-500 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
           />
-          <span className="text-sm text-gray-700">Save my preferences</span>
+          <span className="text-sm text-gray-700 dark:text-gray-300">Save my preferences</span>
         </label>
 
         {/* Match Now Button */}
@@ -261,7 +261,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </Button>
 
         {/* Info */}
-        <div className="text-xs text-gray-500 text-center border-t pt-4">
+        <div className="text-xs text-gray-500 dark:text-gray-400 text-center border-t dark:border-gray-700 pt-4">
           Powered by AI-driven matching algorithm
         </div>
       </div>

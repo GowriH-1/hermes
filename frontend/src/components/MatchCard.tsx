@@ -91,7 +91,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       }}
       className="relative"
     >
-      <Card className="overflow-hidden bg-white">
+      <Card className="overflow-hidden bg-white dark:bg-[#0a0a0a]">
         {/* Score Badge - Top Right */}
         <div className="absolute top-4 right-4 z-10">
           <motion.div
@@ -107,7 +107,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         </div>
 
         {/* Product Image */}
-        <div className="relative h-48 bg-gradient-to-br from-purple-100 to-pink-100 overflow-hidden">
+        <div className="relative h-48 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-950/30 dark:to-pink-950/30 overflow-hidden">
           <img
             src={match.wishlist_item.image_url || placeholder}
             alt={match.wishlist_item.title}
@@ -129,11 +129,11 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         <div className="p-6 space-y-4">
           {/* Title & Price */}
           <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-1">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
               {match.wishlist_item.title}
             </h3>
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 {match.user.full_name}
                 {match.user.age_group && ` • ${match.user.age_group}`}
                 {match.wishlist_item.category && ` • ${match.wishlist_item.category}`}
@@ -151,7 +151,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 
           {/* Description (if available) */}
           {match.wishlist_item.description && (
-            <p className="text-sm text-gray-600 line-clamp-2">
+            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
               {match.wishlist_item.description}
             </p>
           )}
@@ -165,20 +165,20 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                   className={
                     i < match.wishlist_item.priority!
                       ? 'text-yellow-400'
-                      : 'text-gray-300'
+                      : 'text-gray-300 dark:text-gray-600'
                   }
                 >
                   ★
                 </span>
               ))}
-              <span className="text-xs text-gray-500 ml-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
                 Priority {match.wishlist_item.priority}/5
               </span>
             </div>
           )}
 
           {/* Score Breakdown */}
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <ScoreBreakdown scores={match.score_breakdown} showLabels={false} />
           </div>
 
@@ -191,25 +191,25 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             }}
             className="relative"
           >
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <div className="flex items-start gap-2">
-                <Sparkles className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <Sparkles className="w-5 h-5 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm text-gray-700 leading-relaxed">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     {match.explanation}
                   </p>
                 </div>
               </div>
             </div>
             {!isExpanded && match.explanation.length > 100 && (
-              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white dark:from-[#0a0a0a] to-transparent pointer-events-none" />
             )}
           </motion.div>
 
           {match.explanation.length > 100 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-sm text-blue-500 hover:text-blue-600 font-medium"
+              className="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 font-medium"
             >
               {isExpanded ? 'Show less' : 'Read more'}
             </button>
@@ -254,7 +254,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
               <Button
                 variant="outline"
                 onClick={() => window.open(match.wishlist_item.url, '_blank')}
-                className="px-4 py-3 border-2 border-gray-300 hover:border-primary-500 hover:text-primary-500 transition-colors"
+                className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 hover:border-primary-500 hover:text-primary-500 transition-colors"
               >
                 <ExternalLink className="w-5 h-5" />
               </Button>
@@ -262,8 +262,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           </div>
 
           {/* Powered by Exa Badge */}
-          <div className="flex items-center justify-center pt-2 border-t border-gray-100">
-            <span className="text-xs text-gray-400">
+          <div className="flex items-center justify-center pt-2 border-t border-gray-100 dark:border-gray-800">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
               Matched by AI • Powered by Exa
             </span>
           </div>

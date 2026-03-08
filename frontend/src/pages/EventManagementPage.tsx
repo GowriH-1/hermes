@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Users, Copy, Check, LogOut } from 'lucide-react';
+import { Plus, Users, Copy, Check, LogOut, Crown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiClient } from '../services/api';
 import { TopNav } from '../components/TopNav';
@@ -20,6 +20,7 @@ interface Event {
   invite_code: string;
   participant_count: number;
   role: string;
+  created_by: number;
 }
 
 export default function EventManagementPage() {
@@ -29,8 +30,11 @@ export default function EventManagementPage() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [confirmLeave, setConfirmLeave] = useState<{ eventId: number; eventName: string } | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setCurrentUserId(user.id);
     loadEvents();
   }, []);
 
@@ -221,6 +225,17 @@ export default function EventManagementPage() {
 
                         {/* Actions */}
                         <div className="space-y-2">
+                          {currentUserId === event.created_by && (
+                            <Link to={`/events/${event.id}/organizer`} className="block">
+                              <Button
+                                size="sm"
+                                className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold"
+                              >
+                                <Crown className="w-4 h-4 mr-2" />
+                                Organizer Dashboard
+                              </Button>
+                            </Link>
+                          )}
                           <Link to={`/events/${event.id}/sponsor`} className="block">
                             <Button
                               size="sm"

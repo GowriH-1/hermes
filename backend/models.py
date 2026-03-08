@@ -63,6 +63,7 @@ class Event(Base):
     creator = relationship("User", back_populates="created_events", foreign_keys=[created_by])
     participants = relationship("EventParticipant", back_populates="event")
     gifts = relationship("Gift", back_populates="event")
+    prizes = relationship("EventPrize", back_populates="event")
     wishlist_items = relationship("WishlistItemEvent", back_populates="event")
     sponsor_preferences = relationship("SponsorPreference", back_populates="event")
 
@@ -163,6 +164,34 @@ class Gift(Base):
     wishlist_item = relationship("WishlistItem", back_populates="gifts")
     sponsor = relationship("User", back_populates="sponsored_gifts", foreign_keys=[sponsor_id])
     event = relationship("Event", back_populates="gifts")
+
+
+class EventPrize(Base):
+    """Organizer-managed prizes for events."""
+
+    __tablename__ = "event_prizes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text)
+    url = Column(String)  # Product link
+    image_url = Column(String)
+    price = Column(Float)
+    category = Column(String)
+    exa_metadata = Column(JSON, default=dict)  # Store Exa search score, etc.
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)  # Organizer who added it
+    recipient_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Winner/recipient
+    status = Column(String, default="available")  # 'available', 'assigned', 'fulfilled'
+    assigned_at = Column(DateTime, nullable=True)
+    fulfilled_at = Column(DateTime, nullable=True)
+    notes = Column(Text)  # Organizer notes
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    event = relationship("Event", back_populates="prizes")
+    creator = relationship("User", foreign_keys=[created_by])
+    recipient = relationship("User", foreign_keys=[recipient_id])
 
 
 class SponsorPreference(Base):

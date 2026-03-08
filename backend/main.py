@@ -83,6 +83,23 @@ def get_current_user(
     return user
 
 
+def require_event_organizer(
+    event_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+) -> models.Event:
+    """Verify user is the event organizer."""
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if event.created_by != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only event organizers can perform this action"
+        )
+    return event
+
+
 def generate_invite_code(length: int = 8) -> str:
     """Generate a random invite code."""
     characters = string.ascii_uppercase + string.digits
@@ -365,6 +382,22 @@ def leave_event(
             detail="Cannot leave as sponsor for an event you created. You can leave as a participant if you joined in that role."
         )
 
+    # Check if user has received any prizes
+    received_prizes = (
+        db.query(models.EventPrize)
+        .filter(
+            models.EventPrize.event_id == event_id,
+            models.EventPrize.recipient_id == current_user.id,
+        )
+        .first()
+    )
+
+    if received_prizes:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot leave event after receiving prizes. Please contact the organizer if needed."
+        )
+
     # Delete participation
     db.delete(participation)
     db.commit()
@@ -434,6 +467,25 @@ def list_my_wishlists(
         db.query(models.Wishlist).filter(models.Wishlist.user_id == current_user.id).all()
     )
     return [schemas.WishlistResponse.model_validate(w) for w in wishlists]
+
+
+@app.get("/api/wishlists/default", response_model=schemas.WishlistResponse)
+def get_default_wishlist(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Get the current user's default wishlist."""
+    wishlist = (
+        db.query(models.Wishlist)
+        .filter(
+            models.Wishlist.user_id == current_user.id,
+            models.Wishlist.is_default == True
+        )
+        .first()
+    )
+    if not wishlist:
+        raise HTTPException(status_code=404, detail="Default wishlist not found")
+    return schemas.WishlistResponse.model_validate(wishlist)
 
 
 @app.get("/api/wishlists/{wishlist_id}/items", response_model=List[schemas.WishlistItemResponse])
@@ -717,6 +769,245 @@ def list_my_gifts(
     """List gifts claimed by current user."""
     gifts = db.query(models.Gift).filter(models.Gift.sponsor_id == current_user.id).all()
     return [schemas.GiftResponse.model_validate(gift) for gift in gifts]
+
+
+# ============================================================================
+# Event Prize Routes (Organizer)
+# ============================================================================
+
+
+@app.post("/api/events/{event_id}/prizes", response_model=schemas.EventPrizeResponse)
+def create_event_prize(
+    event_id: int,
+    prize_data: schemas.EventPrizeCreate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Create a prize for an event (organizer only)."""
+    event = require_event_organizer(event_id, current_user, db)
+
+    # Verify event_id matches
+    if prize_data.event_id != event_id:
+        raise HTTPException(status_code=400, detail="Event ID mismatch")
+
+    prize = models.EventPrize(
+        event_id=event_id,
+        title=prize_data.title,
+        description=prize_data.description,
+        url=prize_data.url,
+        image_url=prize_data.image_url,
+        price=prize_data.price,
+        category=prize_data.category,
+        exa_metadata=prize_data.exa_metadata,
+        created_by=current_user.id,
+        notes=prize_data.notes,
+        status="available",
+    )
+
+    db.add(prize)
+    db.commit()
+    db.refresh(prize)
+
+    return schemas.EventPrizeResponse.model_validate(prize)
+
+
+@app.get("/api/events/{event_id}/prizes", response_model=List[schemas.EventPrizeResponse])
+def list_event_prizes(
+    event_id: int,
+    status: str = None,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """List all prizes for an event."""
+    # Verify user is part of event
+    participation = (
+        db.query(models.EventParticipant)
+        .filter(
+            models.EventParticipant.event_id == event_id,
+            models.EventParticipant.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not participation:
+        raise HTTPException(status_code=403, detail="Not part of this event")
+
+    query = db.query(models.EventPrize).filter(models.EventPrize.event_id == event_id)
+    if status:
+        query = query.filter(models.EventPrize.status == status)
+
+    prizes = query.order_by(models.EventPrize.created_at.desc()).all()
+    return [schemas.EventPrizeResponse.model_validate(p) for p in prizes]
+
+
+@app.patch("/api/events/{event_id}/prizes/{prize_id}/assign", response_model=schemas.EventPrizeResponse)
+def assign_prize(
+    event_id: int,
+    prize_id: int,
+    recipient_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Assign a prize to a participant (organizer only)."""
+    event = require_event_organizer(event_id, current_user, db)
+
+    prize = db.query(models.EventPrize).filter(
+        models.EventPrize.id == prize_id,
+        models.EventPrize.event_id == event_id,
+    ).first()
+
+    if not prize:
+        raise HTTPException(status_code=404, detail="Prize not found")
+
+    # Verify recipient is a participant in the event
+    recipient = (
+        db.query(models.EventParticipant)
+        .filter(
+            models.EventParticipant.event_id == event_id,
+            models.EventParticipant.user_id == recipient_id,
+            models.EventParticipant.role == "participant",
+        )
+        .first()
+    )
+
+    if not recipient:
+        raise HTTPException(status_code=400, detail="Recipient must be a participant in this event")
+
+    prize.recipient_id = recipient_id
+    prize.status = "assigned"
+    from datetime import datetime
+    prize.assigned_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(prize)
+
+    return schemas.EventPrizeResponse.model_validate(prize)
+
+
+@app.patch("/api/events/{event_id}/prizes/{prize_id}", response_model=schemas.EventPrizeResponse)
+def update_prize(
+    event_id: int,
+    prize_id: int,
+    updates: schemas.EventPrizeUpdate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Update a prize (organizer only)."""
+    event = require_event_organizer(event_id, current_user, db)
+
+    prize = db.query(models.EventPrize).filter(
+        models.EventPrize.id == prize_id,
+        models.EventPrize.event_id == event_id,
+    ).first()
+
+    if not prize:
+        raise HTTPException(status_code=404, detail="Prize not found")
+
+    # Update fields
+    if updates.title is not None:
+        prize.title = updates.title
+    if updates.description is not None:
+        prize.description = updates.description
+    if updates.notes is not None:
+        prize.notes = updates.notes
+    if updates.status is not None:
+        prize.status = updates.status
+        if updates.status == "fulfilled":
+            from datetime import datetime
+            prize.fulfilled_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(prize)
+
+    return schemas.EventPrizeResponse.model_validate(prize)
+
+
+@app.delete("/api/events/{event_id}/prizes/{prize_id}")
+def delete_prize(
+    event_id: int,
+    prize_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Delete a prize (organizer only)."""
+    event = require_event_organizer(event_id, current_user, db)
+
+    prize = db.query(models.EventPrize).filter(
+        models.EventPrize.id == prize_id,
+        models.EventPrize.event_id == event_id,
+    ).first()
+
+    if not prize:
+        raise HTTPException(status_code=404, detail="Prize not found")
+
+    db.delete(prize)
+    db.commit()
+
+    return {"message": "Prize deleted successfully"}
+
+
+@app.get("/api/events/{event_id}/participants", response_model=List[schemas.UserResponse])
+def list_event_participants(
+    event_id: int,
+    role: str = None,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """List all participants in an event."""
+    # Verify user is part of event
+    participation = (
+        db.query(models.EventParticipant)
+        .filter(
+            models.EventParticipant.event_id == event_id,
+            models.EventParticipant.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not participation:
+        raise HTTPException(status_code=403, detail="Not part of this event")
+
+    query = (
+        db.query(models.User)
+        .join(models.EventParticipant, models.User.id == models.EventParticipant.user_id)
+        .filter(models.EventParticipant.event_id == event_id)
+    )
+
+    if role:
+        query = query.filter(models.EventParticipant.role == role)
+
+    users = query.all()
+    return [schemas.UserResponse.model_validate(u) for u in users]
+
+
+@app.get("/api/events/{event_id}/my-prizes", response_model=List[schemas.EventPrizeResponse])
+def get_my_prizes(
+    event_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """Get prizes assigned to current user in an event."""
+    # Verify user is part of event
+    participation = (
+        db.query(models.EventParticipant)
+        .filter(
+            models.EventParticipant.event_id == event_id,
+            models.EventParticipant.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not participation:
+        raise HTTPException(status_code=403, detail="Not part of this event")
+
+    # Get prizes assigned to this user
+    prizes = (
+        db.query(models.EventPrize)
+        .filter(
+            models.EventPrize.event_id == event_id,
+            models.EventPrize.recipient_id == current_user.id,
+        )
+        .all()
+    )
+
+    return [schemas.EventPrizeResponse.model_validate(p) for p in prizes]
 
 
 # ============================================================================

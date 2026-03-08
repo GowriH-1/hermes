@@ -41,6 +41,20 @@ interface ExaProduct {
   summary?: string;
 }
 
+interface EventPrize {
+  id: number;
+  event_id: number;
+  title: string;
+  description?: string;
+  url?: string;
+  image_url?: string;
+  price?: number;
+  category?: string;
+  status: string;
+  assigned_at?: string;
+  fulfilled_at?: string;
+}
+
 export default function WishlistPage() {
   const { user, logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -67,15 +81,22 @@ export default function WishlistPage() {
   // Event selector dropdown
   const [showEventDropdown, setShowEventDropdown] = useState(false);
 
-  // Load all participant events
+  // Prizes
+  const [myPrizes, setMyPrizes] = useState<EventPrize[]>([]);
+  const [showPrizesBanner, setShowPrizesBanner] = useState(true);
+
+  // Load all participant events and wishlist items
   useEffect(() => {
     loadParticipantEvents();
+    loadAllWishlistItems();
   }, []);
 
   // Load wishlist items when event changes
   useEffect(() => {
     if (selectedEventId) {
       loadWishlistItems(selectedEventId);
+    } else {
+      loadAllWishlistItems();
     }
   }, [selectedEventId]);
 
@@ -96,12 +117,48 @@ export default function WishlistPage() {
         setSelectedEventId(participantOnly[0].id);
         setSelectedEvent(participantOnly[0]);
       }
+      // If no events, selectedEventId remains null and we show all wishlist items
     } catch (error) {
       console.error('Error loading events:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const loadAllWishlistItems = async () => {
+    try {
+      setLoadingItems(true);
+      const defaultWishlist = await apiClient.getDefaultWishlist();
+      const items = await apiClient.getWishlistItems(defaultWishlist.id);
+      setWishlistItems(items);
+    } catch (error) {
+      console.error('Error loading wishlist items:', error);
+    } finally {
+      setLoadingItems(false);
+    }
+  };
+
+  const loadMyPrizes = async (eventId: number) => {
+    try {
+      const prizes = await apiClient.getMyPrizes(eventId);
+      setMyPrizes(prizes);
+      if (prizes.length > 0) {
+        setShowPrizesBanner(true);
+      }
+    } catch (error) {
+      console.error('Error loading prizes:', error);
+      setMyPrizes([]);
+    }
+  };
+
+  // Load prizes when event is selected
+  useEffect(() => {
+    if (selectedEventId) {
+      loadMyPrizes(selectedEventId);
+    } else {
+      setMyPrizes([]);
+    }
+  }, [selectedEventId]);
 
   const loadWishlistItems = async (eventId: number) => {
     try {
@@ -138,16 +195,8 @@ export default function WishlistPage() {
   };
 
   const handleAddFromSearch = async (product: ExaProduct) => {
-    if (!selectedEventId) return;
-
     try {
-      const wishlists = await apiClient.getMyWishlists();
-      const defaultWishlist = wishlists.find((w: any) => w.is_default);
-
-      if (!defaultWishlist) {
-        alert('Please create a wishlist first');
-        return;
-      }
+      const defaultWishlist = await apiClient.getDefaultWishlist();
 
       const newItem = await apiClient.createWishlistItem({
         wishlist_id: defaultWishlist.id,
@@ -158,8 +207,8 @@ export default function WishlistPage() {
         price_min: product.price || 0,
         category: 'other',
         priority: 3,
-        privacy_level: 'event_only',
-        event_ids: [selectedEventId],
+        privacy_level: selectedEventId ? 'event_only' : 'public',
+        event_ids: selectedEventId ? [selectedEventId] : [],
       });
 
       setWishlistItems([...wishlistItems, newItem]);
@@ -188,12 +237,10 @@ export default function WishlistPage() {
   };
 
   const handleUpdateItem = async (itemId: number, updates: Partial<WishlistItem>) => {
-    if (!selectedEventId) return;
-
     try {
       const updated = await apiClient.updateWishlistItem(itemId, {
         ...updates,
-        event_ids: [selectedEventId],
+        event_ids: selectedEventId ? [selectedEventId] : [],
       });
 
       setWishlistItems(wishlistItems.map((item) => (item.id === itemId ? updated : item)));
@@ -213,27 +260,6 @@ export default function WishlistPage() {
     );
   }
 
-  if (participantEvents.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="text-center py-12">
-            <div className="text-6xl mb-4">🎁</div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Events Yet</h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Join or create an event as a participant to start building your wishlist!
-            </p>
-            <Link to="/dashboard">
-              <Button className="bg-primary-500 hover:bg-primary-600">
-                Go to Dashboard
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Top Navigation */}
@@ -243,77 +269,222 @@ export default function WishlistPage() {
       <div className="bg-white dark:bg-[#0a0a0a] border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="relative">
-            <button
-              onClick={() => setShowEventDropdown(!showEventDropdown)}
-              className="flex items-center justify-between w-full md:w-96 px-4 py-3 bg-white dark:bg-[#0a0a0a] border-2 border-primary-200 dark:border-primary-700 rounded-lg hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-xl">
-                  🎁
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {selectedEvent?.name || 'Select Event'}
+            {participantEvents.length > 0 ? (
+              <>
+                <button
+                  onClick={() => setShowEventDropdown(!showEventDropdown)}
+                  className="flex items-center justify-between w-full md:w-96 px-4 py-3 bg-white dark:bg-[#0a0a0a] border-2 border-primary-200 dark:border-primary-700 rounded-lg hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-xl">
+                      🎁
+                    </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {selectedEvent?.name || 'My Wishlist'}
+                        </span>
+                        {myPrizes.length > 0 && (
+                          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full animate-pulse">
+                            {myPrizes.length}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {selectedEvent ? `${selectedEvent.participant_count || 0} members` : 'Public wishlist'}
+                        {myPrizes.length > 0 && (
+                          <span className="text-yellow-600 dark:text-yellow-400 font-semibold ml-2">
+                            🎉 {myPrizes.length} {myPrizes.length === 1 ? 'prize' : 'prizes'} won!
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-300 dark:text-gray-300">
-                    {selectedEvent?.participant_count || 0} members
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${
+                      showEventDropdown ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {/* Dropdown */}
+                <AnimatePresence>
+                  {showEventDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute z-10 mt-2 w-full md:w-96 bg-white dark:bg-[#0a0a0a] border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-xl"
+                    >
+                      <div className="p-2 max-h-96 overflow-y-auto">
+                        <button
+                          onClick={() => {
+                            setSelectedEventId(null);
+                            setSelectedEvent(null);
+                            setShowEventDropdown(false);
+                            setSearchParams({});
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors mb-2 ${
+                            !selectedEventId
+                              ? 'bg-primary-50 dark:bg-primary-900/30 border-2 border-primary-300 dark:border-primary-600'
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-2 border-transparent'
+                          }`}
+                        >
+                          <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center text-xl">
+                            ✨
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                              My Wishlist
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              All items • Public
+                            </div>
+                          </div>
+                          {!selectedEventId && (
+                            <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
+                          )}
+                        </button>
+                        {participantEvents.map((event) => (
+                          <button
+                            key={event.id}
+                            onClick={() => handleEventSwitch(event)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                              selectedEventId === event.id
+                                ? 'bg-primary-50 dark:bg-primary-900/30 border-2 border-primary-300 dark:border-primary-600'
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-2 border-transparent'
+                            }`}
+                          >
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-xl">
+                              🎁
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-gray-900 dark:text-white truncate">
+                                {event.name}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {event.event_type.replace('_', ' ')} • {event.participant_count} members
+                              </div>
+                            </div>
+                            {selectedEventId === event.id && (
+                              <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : (
+              <div className="flex items-center justify-between w-full md:w-auto px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center text-xl">
+                    ✨
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900 dark:text-white">
+                      My Wishlist
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Public wishlist • <Link to="/event-management" className="text-primary-500 hover:underline">Join an event</Link> to share
+                    </div>
                   </div>
                 </div>
               </div>
-              <ChevronDown
-                className={`w-5 h-5 text-gray-500 dark:text-gray-300 dark:text-gray-300 transition-transform ${
-                  showEventDropdown ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-
-            {/* Dropdown */}
-            <AnimatePresence>
-              {showEventDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute z-10 mt-2 w-full md:w-96 bg-white dark:bg-[#0a0a0a] border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-xl"
-                >
-                  <div className="p-2 max-h-96 overflow-y-auto">
-                    {participantEvents.map((event) => (
-                      <button
-                        key={event.id}
-                        onClick={() => handleEventSwitch(event)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                          selectedEventId === event.id
-                            ? 'bg-primary-50 dark:bg-primary-900/30 border-2 border-primary-300 dark:border-primary-600'
-                            : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-2 border-transparent'
-                        }`}
-                      >
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-xl">
-                          🎁
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 dark:text-white truncate">
-                            {event.name}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-300 dark:text-gray-300">
-                            {event.event_type.replace('_', ' ')} • {event.participant_count} members
-                          </div>
-                        </div>
-                        {selectedEventId === event.id && (
-                          <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Prizes Banner */}
+      {myPrizes.length > 0 && showPrizesBanner && (
+        <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-b border-yellow-200 dark:border-yellow-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-start justify-between gap-4"
+            >
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center text-2xl shadow-lg">
+                    🎉
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                      Congratulations! You've Won {myPrizes.length} {myPrizes.length === 1 ? 'Prize' : 'Prizes'}!
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      You've been selected as a winner in this event. Check out your prizes below!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {myPrizes.map((prize) => (
+                    <motion.div
+                      key={prize.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-white dark:bg-[#0a0a0a] border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 shadow-sm"
+                    >
+                      <div className="flex items-start gap-3">
+                        {prize.image_url ? (
+                          <img
+                            src={prize.image_url}
+                            alt={prize.title}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-lg flex items-center justify-center text-2xl">
+                            🎁
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                            {prize.title}
+                          </h4>
+                          {prize.description && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                              {prize.description}
+                            </p>
+                          )}
+                          {prize.price && (
+                            <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1">
+                              ${prize.price.toFixed(2)}
+                            </p>
+                          )}
+                          {prize.url && (
+                            <a
+                              href={prize.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary-500 hover:underline mt-1 inline-block"
+                            >
+                              View Product →
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowPrizesBanner(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </motion.div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      {selectedEvent && (
-        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: My Wishlist */}
             <Card className="h-fit">
@@ -516,26 +687,27 @@ export default function WishlistPage() {
           </div>
 
           {/* Event Info Card */}
-          <Card className="mt-6">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Event Details</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    {selectedEvent.description || 'No description'}
-                  </p>
+          {selectedEvent && (
+            <Card className="mt-6">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Event Details</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      {selectedEvent.description || 'No description'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500 dark:text-gray-300 mb-1">Invite Code</p>
+                    <code className="px-3 py-1.5 bg-primary-50 text-primary-700 font-mono font-bold rounded border border-primary-200">
+                      {selectedEvent.invite_code}
+                    </code>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500 dark:text-gray-300 mb-1">Invite Code</p>
-                  <code className="px-3 py-1.5 bg-primary-50 text-primary-700 font-mono font-bold rounded border border-primary-200">
-                    {selectedEvent.invite_code}
-                  </code>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </main>
-      )}
+              </CardContent>
+            </Card>
+          )}
+      </main>
 
       {/* Edit Modal */}
       <AnimatePresence>

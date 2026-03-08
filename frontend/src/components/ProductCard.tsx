@@ -16,9 +16,10 @@ interface ProductCardProps {
   product: ExaProduct;
   onAdd: (product: ExaProduct) => void;
   isAdding?: boolean;
+  buttonText?: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onAdd, isAdding }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onAdd, isAdding, buttonText = '+ Add to Wishlist' }) => {
   return (
     <Card className="flex flex-col h-full hover:shadow-lg transition-shadow border-pink-100/50">
       <div className="relative h-48 w-full overflow-hidden bg-gray-100 rounded-t-lg">
@@ -69,12 +70,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAdd, isAdding }) =
       </CardContent>
       
       <CardFooter className="p-4 pt-0">
-        <Button 
-          onClick={() => onAdd(product)} 
+        <Button
+          onClick={() => onAdd(product)}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white border-none"
           disabled={isAdding}
         >
-          {isAdding ? 'Adding...' : '+ Add to Wishlist'}
+          {isAdding ? 'Adding...' : buttonText}
         </Button>
       </CardFooter>
     </Card>
