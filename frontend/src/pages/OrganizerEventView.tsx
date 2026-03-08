@@ -414,7 +414,7 @@ const OrganizerEventView: React.FC = () => {
           transition={{ duration: 0.3 }}
         >
           {activeTab === 'pool' && <PrizePoolManager eventId={eventId} />}
-          {activeTab === 'assign' && <PrizeAssignmentFlow eventId={eventId} />}
+          {activeTab === 'assign' && <PrizeAssignmentFlow eventId={eventId} onPrizeAssigned={loadData} />}
           {activeTab === 'standings' && <PrizeStandings eventId={eventId} />}
         </motion.div>
       </div>

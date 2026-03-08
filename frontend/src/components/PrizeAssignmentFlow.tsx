@@ -47,6 +47,7 @@ interface Recommendation {
 
 interface PrizeAssignmentFlowProps {
   eventId: number;
+  onPrizeAssigned?: () => void;
 }
 
 interface AssignedPrize extends EventPrize {
@@ -54,7 +55,7 @@ interface AssignedPrize extends EventPrize {
   rank?: number;
 }
 
-export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventId }) => {
+export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventId, onPrizeAssigned }) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [prizes, setPrizes] = useState<EventPrize[]>([]);
   const [assignedPrizes, setAssignedPrizes] = useState<AssignedPrize[]>([]);
@@ -213,6 +214,11 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
       setSelectedPrize(null);
       setSelectedWishlistItem(null);
       await loadData();
+
+      // Notify parent to refresh budget
+      if (onPrizeAssigned) {
+        onPrizeAssigned();
+      }
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
