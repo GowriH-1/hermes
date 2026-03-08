@@ -183,6 +183,7 @@ class EventPrize(Base):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)  # Organizer who added it
     recipient_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Winner/recipient
     status = Column(String, default="available")  # 'available', 'assigned', 'fulfilled'
+    rank = Column(Integer, nullable=True)  # 1 = 1st place, 2 = 2nd place, etc.
     assigned_at = Column(DateTime, nullable=True)
     fulfilled_at = Column(DateTime, nullable=True)
     notes = Column(Text)  # Organizer notes

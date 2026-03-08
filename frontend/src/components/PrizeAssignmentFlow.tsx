@@ -83,12 +83,25 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
 
   const loadData = async () => {
     try {
-      const [participantsData, prizesData] = await Promise.all([
+      const [participantsData, availablePrizesData, allPrizesData] = await Promise.all([
         apiClient.getEventParticipants(eventId, 'participant'),
         apiClient.getEventPrizes(eventId, 'available'),
+        apiClient.getEventPrizes(eventId), // Get all prizes to check who already has one
       ]);
-      setParticipants(participantsData);
-      setPrizes(prizesData);
+
+      // Filter out participants who already have prizes
+      const participantsWithPrizes = new Set(
+        allPrizesData
+          .filter((p: any) => p.status === 'assigned' || p.status === 'fulfilled')
+          .map((p: any) => p.recipient_id)
+      );
+
+      const availableParticipants = participantsData.filter(
+        (p: Participant) => !participantsWithPrizes.has(p.id)
+      );
+
+      setParticipants(availableParticipants);
+      setPrizes(availablePrizesData);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {

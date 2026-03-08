@@ -14,6 +14,7 @@ interface EventPrize {
   category?: string;
   status: string;
   recipient_id?: number;
+  rank?: number;
   assigned_at?: string;
   created_at: string;
 }
@@ -61,11 +62,19 @@ export const PrizeStandings: React.FC<PrizeStandingsProps> = ({ eventId }) => {
         recipient: participantsData.find((p: Participant) => p.id === prize.recipient_id),
       }));
 
-      // Sort by assigned date (most recent first)
+      // Sort by rank (1st place first, then 2nd, etc.)
       prizesWithRecipients.sort((a, b) => {
+        // If both have ranks, sort by rank
+        if (a.rank !== null && a.rank !== undefined && b.rank !== null && b.rank !== undefined) {
+          return a.rank - b.rank;
+        }
+        // If only one has a rank, prioritize it
+        if (a.rank !== null && a.rank !== undefined) return -1;
+        if (b.rank !== null && b.rank !== undefined) return 1;
+        // Fallback to assigned date for prizes without ranks
         const dateA = new Date(a.assigned_at || a.created_at).getTime();
         const dateB = new Date(b.assigned_at || b.created_at).getTime();
-        return dateA - dateB; // Earliest first for ranking
+        return dateA - dateB;
       });
 
       setPrizes(prizesWithRecipients);

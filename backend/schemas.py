@@ -251,6 +251,7 @@ class EventPrizeResponse(BaseModel):
     created_by: int
     recipient_id: Optional[int]
     status: str
+    rank: Optional[int]
     assigned_at: Optional[datetime]
     fulfilled_at: Optional[datetime]
     notes: Optional[str]

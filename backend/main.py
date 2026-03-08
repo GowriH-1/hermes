@@ -1146,8 +1146,37 @@ def assign_prize(
     if not recipient:
         raise HTTPException(status_code=400, detail="Recipient must be a participant in this event")
 
+    # Check if recipient already has a prize
+    existing_prize = (
+        db.query(models.EventPrize)
+        .filter(
+            models.EventPrize.event_id == event_id,
+            models.EventPrize.recipient_id == recipient_id,
+            models.EventPrize.status.in_(["assigned", "fulfilled"]),
+        )
+        .first()
+    )
+
+    if existing_prize:
+        raise HTTPException(
+            status_code=400,
+            detail="This participant has already been assigned a prize. Each participant can only receive one prize."
+        )
+
+    # Calculate next rank (count existing assigned prizes + 1)
+    assigned_count = (
+        db.query(models.EventPrize)
+        .filter(
+            models.EventPrize.event_id == event_id,
+            models.EventPrize.status.in_(["assigned", "fulfilled"]),
+        )
+        .count()
+    )
+    next_rank = assigned_count + 1
+
     prize.recipient_id = recipient_id
     prize.status = "assigned"
+    prize.rank = next_rank
     from datetime import datetime
     prize.assigned_at = datetime.utcnow()
 
