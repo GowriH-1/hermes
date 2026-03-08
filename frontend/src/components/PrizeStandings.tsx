@@ -37,7 +37,6 @@ interface PrizeStandingsProps {
 
 export const PrizeStandings: React.FC<PrizeStandingsProps> = ({ eventId }) => {
   const [prizes, setPrizes] = useState<PrizeWithRecipient[]>([]);
-  const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,7 +62,7 @@ export const PrizeStandings: React.FC<PrizeStandingsProps> = ({ eventId }) => {
       }));
 
       // Sort by rank (1st place first, then 2nd, etc.)
-      prizesWithRecipients.sort((a, b) => {
+      prizesWithRecipients.sort((a: PrizeWithRecipient, b: PrizeWithRecipient) => {
         // If both have ranks, sort by rank
         if (a.rank !== null && a.rank !== undefined && b.rank !== null && b.rank !== undefined) {
           return a.rank - b.rank;
@@ -78,7 +77,6 @@ export const PrizeStandings: React.FC<PrizeStandingsProps> = ({ eventId }) => {
       });
 
       setPrizes(prizesWithRecipients);
-      setParticipants(participantsData);
     } catch (error) {
       console.error('Failed to load standings:', error);
     } finally {
