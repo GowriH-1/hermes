@@ -115,66 +115,19 @@ class ExaService:
                     price_info.append(f"under ${price_max}")
                 enhanced_query += f" with budget {' and '.join(price_info)}"
 
-            # Define output schema for structured product data
-            output_schema = {
-                "type": "object",
-                "description": "List of products matching the search query",
-                "required": ["products"],
-                "properties": {
-                    "products": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "required": ["name", "url", "price"],
-                            "properties": {
-                                "name": { "type": "string", "description": "The full name or title of the product" },
-                                "url": { "type": "string", "description": "The exact URL to the product page" },
-                                "price": { "type": "number", "description": "The current price of the product in USD" },
-                                "description": { "type": "string", "description": "A concise description of the product and why it's a good gift" },
-                                "image_url": { "type": "string", "description": "URL of the product image if available" }
-                            }
-                        }
-                    }
-                }
-            }
-
-            # Search with Exa using "deep" search for best results
-            print(f"Searching Exa (deep) for: {enhanced_query}")
+            # Search with Exa - use basic search with text content
+            print(f"Searching Exa for: {enhanced_query}")
             search_response = self.client.search(
                 query=enhanced_query,
-                type="deep",
                 num_results=max_results,
-                output_schema=output_schema,
-                contents={"highlights": {"max_characters": 500}}
+                use_autoprompt=True,
+                text={"max_characters": 500}
             )
 
             products = []
-            
-            # Extract structured content from Exa deep search
-            if hasattr(search_response, "output") and hasattr(search_response.output, "content"):
-                extracted_data = search_response.output.content
-                if "products" in extracted_data:
-                    for p in extracted_data["products"]:
-                        # Filter by price if specified (extra validation)
-                        price = p.get("price")
-                        if price is not None:
-                            if price_min is not None and price < price_min:
-                                continue
-                            if price_max is not None and price > price_max:
-                                continue
 
-                        product = ExaProduct(
-                            title=p.get("name", "Untitled"),
-                            url=p.get("url"),
-                            description=p.get("description"),
-                            image_url=p.get("image_url"),
-                            price=float(price) if price is not None else None,
-                            score=1.0 # Deep search doesn't return score in the same way for structured
-                        )
-                        products.append(product)
-
-            # If structured output failed or returned nothing, fallback to standard results
-            if not products and hasattr(search_response, "results"):
+            # Process results from basic search
+            if hasattr(search_response, "results"):
                 for result in search_response.results:
                     # Extract price from text if available
                     price = self._extract_price(result.text) if hasattr(result, "text") else None
