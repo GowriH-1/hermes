@@ -35,7 +35,7 @@ export default function Register() {
         ...formData,
         interests: interestsArray,
       });
-      navigate('/dashboard');
+      navigate('/wishlist');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Registration failed. Please try again.');
     } finally {

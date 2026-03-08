@@ -120,7 +120,7 @@ const OrganizerEventView: React.FC = () => {
             className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            Back to Home
           </Link>
 
           <div className="flex items-start justify-between">

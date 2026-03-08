@@ -148,7 +148,7 @@ export default function WishlistBuilder() {
       <header className="bg-white dark:bg-[#0a0a0a] border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/dashboard">
+            <Link to="/wishlist">
               <Button variant="ghost" size="icon" className="text-gray-500">
                 <ChevronLeft size={24} />
               </Button>
@@ -231,9 +231,9 @@ export default function WishlistBuilder() {
                 <p className="text-sm text-purple-50 opacity-90 mb-4">
                   Your wishlist is now ready! Sponsors can discover these items and claim them for you.
                 </p>
-                <Link to="/dashboard">
+                <Link to="/wishlist">
                   <Button className="w-full bg-white text-purple-600 hover:bg-purple-50 font-bold border-none">
-                    Back to Dashboard
+                    Back to Wishlist
                   </Button>
                 </Link>
               </div>
