@@ -8,13 +8,20 @@ import { MatchCard } from '../components/MatchCard';
 import { TopNav } from '../components/TopNav';
 import { apiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-
+import { useTheme } from '../contexts/ThemeContext';
 interface Event {
   id: number;
   name: string;
   description?: string;
+  website_url?: string;
   event_type: string;
   event_date?: string;
+  brand_info?: {
+    primary_color?: string;
+    secondary_color?: string;
+    logo_url?: string;
+    tagline?: string;
+  };
 }
 
 interface MatchSuggestion {
@@ -57,13 +64,21 @@ interface MatchFilters {
 export const SponsorDashboard: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { } = useAuth();
+  const { setBrandConfig } = useTheme();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [matches, setMatches] = useState<MatchSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [matching, setMatching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+
+  useEffect(() => {
+    if (event?.brand_info) {
+      setBrandConfig(event.brand_info);
+    }
+    return () => setBrandConfig(null);
+  }, [event, setBrandConfig]);
 
   useEffect(() => {
     if (!eventId) {
@@ -160,7 +175,7 @@ export const SponsorDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary-500 mx-auto" />
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-brand-primary mx-auto" />
           <p className="mt-4 text-gray-600 dark:text-gray-300 font-medium">Loading event...</p>
         </div>
       </div>
@@ -174,7 +189,7 @@ export const SponsorDashboard: React.FC = () => {
           <p className="text-xl text-gray-600 dark:text-gray-300">Event not found</p>
           <button
             onClick={() => navigate('/event-management')}
-            className="mt-4 text-primary-500 hover:text-primary-600 font-medium"
+            className="mt-4 text-brand-primary hover:text-brand-primary-hover font-medium"
           >
             Return to Event Management
           </button>
@@ -193,7 +208,7 @@ export const SponsorDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Gift Matching: <span className="text-primary-500">{event.name}</span>
+                Gift Matching: <span className="text-brand-primary">{event.name}</span>
               </h1>
               {event.description && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{event.description}</p>

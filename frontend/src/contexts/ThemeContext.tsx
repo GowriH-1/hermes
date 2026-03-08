@@ -42,24 +42,42 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = window.document.documentElement;
     
-    // Helper to convert hex to RGB components for Tailwind
-    const hexToRgb = (hex: string) => {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result ? 
-        `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}` : 
-        null;
+    // Helper to ensure we provide r g b format for Tailwind's rgb(var(--...) / <alpha>)
+    const normalizeToRgb = (color: string) => {
+      if (!color) return null;
+      
+      // 1. If it's already a hex
+      const hexMatch = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+      if (hexMatch) {
+        return `${parseInt(hexMatch[1], 16)} ${parseInt(hexMatch[2], 16)} ${parseInt(hexMatch[3], 16)}`;
+      }
+
+      // 2. If it's rgb(r, g, b) or rgb(r g b)
+      const rgbMatch = /rgb\s*\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)\s*\)/i.exec(color);
+      if (rgbMatch) {
+        return `${rgbMatch[1]} ${rgbMatch[2]} ${rgbMatch[3]}`;
+      }
+
+      // 3. Fallback for common color names (very basic)
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        return `${r} ${g} ${b}`;
+      }
+
+      return null;
     };
 
     if (brandConfig?.primary_color) {
-      const rgb = hexToRgb(brandConfig.primary_color);
+      const rgb = normalizeToRgb(brandConfig.primary_color);
       if (rgb) {
         root.style.setProperty('--brand-primary', rgb);
-        // For hover, we'll just use the same but it will be used with alpha in tailwind
         root.style.setProperty('--brand-primary-hover', rgb);
-      } else {
-        // Fallback if not a hex
-        root.style.setProperty('--brand-primary', brandConfig.primary_color);
-        root.style.setProperty('--brand-primary-hover', brandConfig.primary_color);
       }
     } else {
       root.style.removeProperty('--brand-primary');
@@ -67,11 +85,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (brandConfig?.secondary_color) {
-      const rgb = hexToRgb(brandConfig.secondary_color);
+      const rgb = normalizeToRgb(brandConfig.secondary_color);
       if (rgb) {
         root.style.setProperty('--brand-secondary', rgb);
-      } else {
-        root.style.setProperty('--brand-secondary', brandConfig.secondary_color);
       }
     } else {
       root.style.removeProperty('--brand-secondary');

@@ -166,7 +166,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   type="checkbox"
                   checked={categories.includes(category.value)}
                   onChange={() => toggleCategory(category.value)}
-                  className="w-4 h-4 text-primary-500 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
+                  className="w-4 h-4 text-brand-primary border-gray-300 dark:border-gray-600 rounded focus:ring-brand-primary"
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">{category.label}</span>
               </label>
@@ -189,7 +189,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   type="checkbox"
                   checked={ageGroups.includes(ageGroup.value)}
                   onChange={() => toggleAgeGroup(ageGroup.value)}
-                  className="w-4 h-4 text-primary-500 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
+                  className="w-4 h-4 text-brand-primary border-gray-300 dark:border-gray-600 rounded focus:ring-brand-primary"
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">{ageGroup.label}</span>
               </label>
@@ -222,7 +222,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             type="checkbox"
             checked={savePreferences}
             onChange={(e) => setSavePreferences(e.target.checked)}
-            className="w-4 h-4 text-primary-500 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
+            className="w-4 h-4 text-brand-primary border-gray-300 dark:border-gray-600 rounded focus:ring-brand-primary"
           />
           <span className="text-sm text-gray-700 dark:text-gray-300">Save my preferences</span>
         </label>
@@ -231,7 +231,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         <Button
           onClick={handleMatch}
           disabled={isLoading}
-          className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 animate-pulse"
+          variant="brand"
+          className="w-full font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 animate-pulse"
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">

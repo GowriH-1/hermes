@@ -139,7 +139,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                 {match.wishlist_item.category && ` • ${match.wishlist_item.category}`}
               </p>
               {match.wishlist_item.price_min && (
-                <p className="text-lg font-bold text-primary-500">
+                <p className="text-lg font-bold text-brand-primary">
                   ${match.wishlist_item.price_min}
                   {match.wishlist_item.price_max &&
                     match.wishlist_item.price_max !== match.wishlist_item.price_min &&
@@ -220,7 +220,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             <Button
               onClick={handleClaim}
               disabled={isClaiming}
-              className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+              variant="brand"
+              className="flex-1 font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {isClaiming ? (
                 <span className="flex items-center justify-center gap-2">
@@ -254,7 +255,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
               <Button
                 variant="outline"
                 onClick={() => window.open(match.wishlist_item.url, '_blank')}
-                className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 hover:border-primary-500 hover:text-primary-500 transition-colors"
+                className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 hover:border-brand-primary hover:text-brand-primary transition-colors"
               >
                 <ExternalLink className="w-5 h-5" />
               </Button>

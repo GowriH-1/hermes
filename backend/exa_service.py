@@ -1,5 +1,6 @@
 import os
 import re
+import hashlib
 from typing import List, Optional
 from dotenv import load_dotenv
 
@@ -9,7 +10,7 @@ from schemas import ExaProduct
 # Load environment variables
 load_dotenv()
 
-# Mock data for testing (saves API credits!)
+# Mock data for testing
 MOCK_BRANDS = {
     "google.com": {
         "primary_color": "#4285F4",
@@ -22,75 +23,11 @@ MOCK_BRANDS = {
         "secondary_color": "#2ea44f",
         "logo_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
         "tagline": "Where the world builds software"
-    },
-    "microsoft.com": {
-        "primary_color": "#00a4ef",
-        "secondary_color": "#7fbb00",
-        "logo_url": "https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RE1Mu3b?ver=5c31",
-        "tagline": "Empowering every person on the planet"
-    },
-    "apple.com": {
-        "primary_color": "#000000",
-        "secondary_color": "#555555",
-        "logo_url": "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png",
-        "tagline": "Think Different"
     }
 }
 
-
-MOCK_PRODUCTS = {
-    "keyboard": [
-        ExaProduct(
-            title="Keychron K2 Wireless Mechanical Keyboard",
-            url="https://www.keychron.com/products/keychron-k2",
-            description="Hot-swappable wireless mechanical keyboard with RGB backlight",
-            image_url="https://example.com/k2.jpg",
-            price=89.0
-        ),
-        ExaProduct(
-            title="Royal Kludge RK61",
-            url="https://www.amazon.com/RK61",
-            description="Compact 60% mechanical keyboard with hot-swap sockets",
-            price=59.99
-        ),
-        ExaProduct(
-            title="Logitech G Pro X",
-            url="https://www.logitechg.com/en-us/products/gaming-keyboards/pro-x-gaming-keyboard.html",
-            description="Tenkeyless mechanical gaming keyboard",
-            price=149.99
-        ),
-    ],
-    "book": [
-        ExaProduct(
-            title="Clean Code by Robert C. Martin",
-            url="https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882",
-            description="A Handbook of Agile Software Craftsmanship",
-            price=35.0
-        ),
-        ExaProduct(
-            title="The Pragmatic Programmer",
-            url="https://pragprog.com/titles/tpp20/",
-            description="Your Journey To Mastery, 20th Anniversary Edition",
-            price=45.0
-        ),
-    ],
-    "default": [
-        ExaProduct(
-            title="Sample Product 1",
-            url="https://example.com/product1",
-            description="A sample product for testing",
-            price=50.0
-        ),
-        ExaProduct(
-            title="Sample Product 2",
-            url="https://example.com/product2",
-            description="Another sample product",
-            price=75.0
-        ),
-    ]
-}
 class ExaService:
-    """Service for searching products using Exa API."""
+    """Service for searching products and extracting brand info using Exa API."""
 
     def __init__(self):
         """Initialize Exa client with API key from environment."""
@@ -115,16 +52,6 @@ class ExaService:
     ) -> List[ExaProduct]:
         """
         Search for products using Exa API.
-
-        Args:
-            query: Search query (e.g., "mechanical keyboard")
-            max_results: Maximum number of results to return
-            price_min: Minimum price filter (optional)
-            price_max: Maximum price filter (optional)
-            search_type: "instant" (lowest latency) or "deep" (neural)
-
-        Returns:
-            List of ExaProduct objects with product information
         """
         if self.use_mock:
             return self._get_mock_products(query, max_results, price_min, price_max)
@@ -135,13 +62,27 @@ class ExaService:
             # deep -> 'neural' type (semantic, reliable)
             exa_type = "instant" if search_type == "instant" else "neural"
             
-            print(f"Searching Exa ({search_type}/{exa_type}) for: {query}")
+            # Domains to exclude for product search to avoid Wikipedia/Articles
+            exclude_domains = [
+                "wikipedia.org", "britannica.com", "encyclopedia.com", 
+                "wiktionary.org", "youtube.com", "facebook.com", 
+                "instagram.com", "pinterest.com", "reddit.com",
+                "medium.com", "quora.com", "investopedia.com", "dictionary.com"
+            ]
             
-            # We always fetch text contents now because output_schema was unreliable
+            # Optimize query for product intent
+            product_query = query
+            if not any(kw in query.lower() for kw in ["buy", "price", "shop", "store", "online"]):
+                product_query = f"buy {query} online price"
+
+            print(f"Searching Exa ({search_type}/{exa_type}) for: {product_query}")
+            
+            # Use search call with domain exclusions
             search_response = self.client.search(
-                query=query,
+                query=product_query,
                 type=exa_type,
                 num_results=max_results,
+                exclude_domains=exclude_domains,
                 contents={"text": {"max_characters": 1500}}
             )
 
@@ -149,24 +90,22 @@ class ExaService:
             if hasattr(search_response, "results"):
                 for result in search_response.results:
                     price = None
-                    # 1. Try Title
-                    if hasattr(result, "title") and result.title:
-                        price = self._extract_price(result.title)
+                    text_content = result.text if hasattr(result, "text") else ""
                     
-                    # 2. Try Text (more characters = better chance)
-                    if price is None and hasattr(result, "text") and result.text:
-                        price = self._extract_price(result.text)
+                    # Try extracting price from Title and Text
+                    price = self._extract_price(result.title) if hasattr(result, "title") else None
+                    if price is None:
+                        price = self._extract_price(text_content)
 
-                    # 3. Filter by price if specified
+                    # Filter by price if specified
                     if price is not None:
                         if price_min is not None and price < price_min: continue
                         if price_max is not None and price > price_max: continue
 
-                    # Create product
                     products.append(ExaProduct(
                         title=result.title if hasattr(result, "title") else "Untitled",
                         url=result.url,
-                        description=result.text[:200] if hasattr(result, "text") else None,
+                        description=text_content[:200] if text_content else None,
                         image_url=self._extract_image_url(result),
                         price=price,
                         score=result.score if hasattr(result, "score") else None,
@@ -182,78 +121,101 @@ class ExaService:
 
     def extract_brand_info(self, url: str) -> dict:
         """
-        Extract brand identity (colors, logo, tagline) from a website URL.
-        
-        Args:
-            url: Website URL to extract brand info from
-            
-        Returns:
-            Dictionary with brand information
+        Extract brand identity using Exa's structured deep search.
         """
         if not url:
             return {}
             
-        # Clean URL
         clean_url = url.lower().replace("https://", "").replace("http://", "").split('/')[0]
         if clean_url.startswith("www."):
             clean_url = clean_url[4:]
             
-        # Return mock brand if available
         if clean_url in MOCK_BRANDS:
-            print(f"Using mock brand info for: {clean_url}")
             return MOCK_BRANDS[clean_url]
             
-        # If not mock, use Exa search to find brand info
         if self.use_mock or not self.client:
-            # Return a default brand for unknowns in mock mode
-            return {
-                "primary_color": "#3b82f6", # Blue 500
-                "secondary_color": "#1e40af", # Blue 800
-                "tagline": f"Welcome to {clean_url.capitalize()}"
-            }
+            return self._get_fallback_brand(clean_url)
             
         try:
-            print(f"Searching Exa for brand info: {url}")
-            # Use Exa to find brand information
+            print(f"🕵️ Branding Agent: Analyzing {url}...")
+            
+            # Use Exa's deep search with output schema for structured branding
+            output_schema = {
+                "type": "object",
+                "required": ["primary_color", "secondary_color", "tagline"],
+                "properties": {
+                    "primary_color": { "type": "string", "description": "The dominant brand color in hex format (e.g. #FF0000)" },
+                    "secondary_color": { "type": "string", "description": "The secondary brand color in hex format" },
+                    "logo_url": { "type": "string", "description": "Direct URL to the company logo image" },
+                    "tagline": { "type": "string", "description": "A short, catchy brand tagline or mission statement" }
+                }
+            }
+            
             search_response = self.client.search(
-                f"What are the brand colors, logo URL, and tagline for {url}?",
-                num_results=3,
-                use_autoprompt=True
+                f"What is the brand identity, primary colors, and mission of {url}?",
+                type="deep",
+                num_results=1,
+                output_schema=output_schema
             )
             
-            # For now, return a sophisticated default based on the domain
-            # In a real app, we'd use LLM to extract this from the search results
-            return {
-                "primary_color": "#6366f1", # Indigo 500
-                "secondary_color": "#4338ca", # Indigo 700
-                "tagline": f"Partnering with {clean_url.split('.')[0].capitalize()}"
-            }
+            if hasattr(search_response, "output") and hasattr(search_response.output, "content"):
+                brand = search_response.output.content
+                print(f"🎨 Branding Agent: Found identity for {clean_url}: {brand.get('primary_color')}")
+                return brand
+                
+            return self._get_fallback_brand(clean_url)
         except Exception as e:
             print(f"Error extracting brand info: {e}")
-            return {}
+            return self._get_fallback_brand(clean_url)
+
+    def _get_fallback_brand(self, domain: str) -> dict:
+        """Generate a deterministic fallback brand based on domain name."""
+        h = hashlib.md5(domain.encode()).hexdigest()
+        color1 = f"#{h[:6]}"
+        color2 = f"#{h[6:12]}"
+        return {
+            "primary_color": color1,
+            "secondary_color": color2,
+            "tagline": f"The future of {domain.split('.')[0].capitalize()}"
+        }
 
     def _extract_price(self, text: Optional[str]) -> Optional[float]:
-        """Robust price extraction using multiple patterns."""
-        if not text:
-            return None
-
-        # 1. Standard $XX.XX pattern - check for both $ and USD
-        # Try to find the first occurrence of a currency-like structure
+        if not text: return None
+        
+        # More comprehensive list of price patterns
         patterns = [
-            r"\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)",  # $1,234.56
-            r"(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:usd|dollars|bucks)", # 99 USD
-            r"(?:price|cost|was|now|at|for)\s*:?\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)", # Price: 45
+            r"price:?\s*\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)", # Price: $99.99
+            r"sale:?\s*\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)",  # Sale: $99.99
+            r"\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)",          # $99.99
+            r"(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*USD",         # 99.99 USD
+            r"(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*dollars",     # 99.99 dollars
+            r"at\s*\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)",     # at $99.99
+            r"for\s*\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)",    # for $99.99
         ]
-
+        
+        # Search the entire text, but prioritize the beginning where product info usually is
+        search_text = text
+        
         for pattern in patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
+            match = re.search(pattern, search_text, re.IGNORECASE)
             if match:
                 try:
-                    val = float(match.group(1).replace(",", ""))
-                    if 0 < val < 50000: # Sanity check for realistic prices
+                    val_str = match.group(1).replace(",", "")
+                    val = float(val_str)
+                    # Sanity check: products in this portal are likely between $1 and $10,000
+                    if 1.0 <= val <= 10000.0:
                         return val
-                except: continue
-
+                except:
+                    continue
+        
+        # Fallback: look for any number that looks like a price ($XX.XX) even without prefix
+        fallback_match = re.search(r"\$(\d+\.\d{2})", search_text)
+        if fallback_match:
+            try:
+                return float(fallback_match.group(1))
+            except:
+                pass
+                
         return None
 
     def _extract_image_url(self, result) -> Optional[str]:
@@ -263,17 +225,6 @@ class ExaService:
 
     def _get_mock_products(self, query: str, max_results: int, price_min: Optional[float], price_max: Optional[float]) -> List[ExaProduct]:
         return []
-
-    def get_product_details(self, url: str) -> Optional[ExaProduct]:
-        try:
-            contents = self.client.get_contents([url], text={"max_characters": 1500})
-            if not contents.results: return None
-            result = contents.results[0]
-            price = self._extract_price(result.text) if hasattr(result, "text") else None
-            return ExaProduct(
-                title=result.title, url=result.url, description=result.text[:300], price=price,
-            )
-        except: return None
 
 _exa_service = None
 def get_exa_service() -> ExaService:

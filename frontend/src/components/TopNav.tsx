@@ -39,7 +39,7 @@ export function TopNav() {
                 to="/wishlist"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   isActive('/wishlist')
-                    ? 'bg-blue-100 text-blue-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-brand-primary/10 dark:text-brand-primary dark:border dark:border-brand-primary/30'
                     : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
                 }`}
               >
@@ -53,7 +53,7 @@ export function TopNav() {
                 to="/events"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   location.pathname === '/events'
-                    ? 'bg-green-100 text-green-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                    ? 'bg-green-100 text-green-700 dark:bg-brand-primary/10 dark:text-brand-primary dark:border dark:border-brand-primary/30'
                     : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
                 }`}
               >
@@ -67,7 +67,7 @@ export function TopNav() {
                 to="/event-management"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   isActive('/event-management')
-                    ? 'bg-purple-100 text-purple-700 dark:bg-primary-500/10 dark:text-primary-400 dark:border dark:border-primary-500/30'
+                    ? 'bg-purple-100 text-purple-700 dark:bg-brand-primary/10 dark:text-brand-primary dark:border dark:border-brand-primary/30'
                     : 'text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1a1a1a] dark:hover:text-white'
                 }`}
               >

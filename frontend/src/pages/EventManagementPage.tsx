@@ -79,8 +79,8 @@ export default function EventManagementPage() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-black">
         <TopNav />
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+        <div className="flex items-center justify-center h-[calc(100-64px)] py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
         </div>
       </div>
     );
@@ -101,7 +101,8 @@ export default function EventManagementPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="bg-primary-500 hover:bg-primary-600 py-3"
+            variant="brand"
+            className="py-3"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create New Event

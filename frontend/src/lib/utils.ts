@@ -22,3 +22,22 @@ export function formatCurrency(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount)
 }
+
+export function getErrorMessage(err: any, defaultMessage: string = 'An error occurred'): string {
+  if (!err) return defaultMessage;
+  
+  const detail = err.response?.data?.detail;
+  
+  if (!detail) return defaultMessage;
+  
+  if (typeof detail === 'string') return detail;
+  
+  if (Array.isArray(detail)) {
+    return detail.map((e: any) => {
+      const loc = e.loc ? e.loc.join('.') : '';
+      return loc ? `${loc}: ${e.msg}` : e.msg;
+    }).join(', ');
+  }
+  
+  return defaultMessage;
+}

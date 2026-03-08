@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Trash2, Edit2, Star, Lock, Globe, X, ChevronDown, Sparkles, ExternalLink } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,8 +44,8 @@ interface ExaProduct {
   title: string;
   url: string;
   price?: number;
-  image?: string;
-  summary?: string;
+  image_url?: string;
+  description?: string;
 }
 
 interface EventPrize {
@@ -244,9 +244,9 @@ export default function WishlistPage() {
       const newItem = await apiClient.createWishlistItem({
         wishlist_id: defaultWishlist.id,
         title: product.title,
-        description: product.summary,
+        description: product.description,
         url: product.url,
-        image_url: product.image,
+        image_url: product.image_url,
         price_min: product.price || 0,
         category: 'other',
         priority: 3,
@@ -329,7 +329,7 @@ export default function WishlistPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
       </div>
     );
   }
@@ -386,14 +386,14 @@ export default function WishlistPage() {
                     <div className="p-2 max-h-96 overflow-y-auto">
                       <button
                         onClick={() => handleEventSwitch(null)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors mb-1 ${selectedEventId === null ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors mb-1 ${selectedEventId === null ? 'bg-brand-primary/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}
                       >
-                        <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/40 rounded-lg flex items-center justify-center text-lg">🌎</div>
+                        <div className="w-8 h-8 bg-brand-primary/20 rounded-lg flex items-center justify-center text-lg">🌎</div>
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-gray-900 dark:text-white text-sm">Public Wishlist</div>
                           <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase">All items, visible to all</div>
                         </div>
-                        {selectedEventId === null && <div className="w-2 h-2 bg-primary-500 rounded-full" />}
+                        {selectedEventId === null && <div className="w-2 h-2 bg-brand-primary rounded-full" />}
                       </button>
 
                       <div className="h-px bg-gray-100 dark:bg-gray-800 my-1 mx-2" />
@@ -402,14 +402,14 @@ export default function WishlistPage() {
                         <button
                           key={event.id}
                           onClick={() => handleEventSwitch(event)}
-                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${selectedEventId === event.id ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${selectedEventId === event.id ? 'bg-brand-primary/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}
                         >
-                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-lg">🎁</div>
+                          <div className="w-8 h-8 bg-brand-secondary/20 rounded-lg flex items-center justify-center text-lg">🎁</div>
                           <div className="flex-1 min-w-0">
                             <div className="font-bold text-gray-900 dark:text-white text-sm truncate">{event.name}</div>
                             <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase">{event.participant_count} members</div>
                           </div>
-                          {selectedEventId === event.id && <div className="w-2 h-2 bg-primary-500 rounded-full" />}
+                          {selectedEventId === event.id && <div className="w-2 h-2 bg-brand-primary rounded-full" />}
                         </button>
                       ))}
                     </div>
@@ -422,7 +422,7 @@ export default function WishlistPage() {
               <div className="hidden md:flex items-center gap-4 text-right">
                 <div>
                   <div className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">Invite Code</div>
-                  <div className="font-mono font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-2 py-0.5 rounded border border-primary-100 dark:border-primary-800">{selectedEvent.invite_code}</div>
+                  <div className="font-mono font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded border border-brand-primary/20">{selectedEvent.invite_code}</div>
                 </div>
               </div>
             )}
@@ -534,7 +534,7 @@ export default function WishlistPage() {
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Your Desire</label>
                   <textarea
-                    className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl text-base min-h-[160px] focus:border-primary-400 focus:ring-0 transition-all shadow-inner bg-gray-50/30 dark:bg-black/20 dark:text-white"
+                    className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl text-base min-h-[160px] focus:border-brand-primary focus:ring-0 transition-all shadow-inner bg-gray-50/30 dark:bg-black/20 dark:text-white"
                     placeholder="Type a product name to search, or describe a unique wish in detail..."
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
@@ -587,7 +587,7 @@ export default function WishlistPage() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">
-                    <Search className="w-4 h-4 text-primary-500" />
+                    <Search className="w-4 h-4 text-brand-primary" />
                     Live Discovery
                   </div>
                   
@@ -607,7 +607,7 @@ export default function WishlistPage() {
                       onClick={() => setSearchMode('deep')}
                       className={`px-2 py-1 text-[10px] font-black uppercase rounded-md transition-all ${
                         searchMode === 'deep' 
-                          ? 'bg-primary-500 text-white shadow-sm' 
+                          ? 'bg-brand-primary text-white shadow-sm' 
                           : 'text-gray-400 dark:text-gray-500 hover:text-gray-600'
                       }`}
                     >
@@ -617,8 +617,8 @@ export default function WishlistPage() {
                 </div>
                 
                 {searching && (
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-primary-500 animate-pulse">
-                    <div className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-brand-primary animate-pulse">
+                    <div className="w-1.5 h-1.5 bg-brand-primary rounded-full" />
                     EXA AI SEARCHING...
                   </div>
                 )}
@@ -660,11 +660,11 @@ export default function WishlistPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-white/[0.02] rounded-2xl p-4 hover:border-primary-200 dark:hover:border-primary-800 hover:shadow-md transition-all group"
+                    className="border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-white/[0.02] rounded-2xl p-4 hover:border-brand-primary/20 dark:hover:border-brand-primary/40 hover:shadow-md transition-all group"
                   >
                     <div className="flex items-start gap-4">
-                      {product.image ? (
-                        <img src={product.image} alt={product.title} className="w-16 h-16 object-cover rounded-xl border border-gray-50 dark:border-gray-800" />
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.title} className="w-16 h-16 object-cover rounded-xl border border-gray-50 dark:border-gray-800" />
                       ) : (
                         <div className="w-16 h-16 bg-gray-50 dark:bg-gray-900 rounded-xl flex items-center justify-center text-gray-300 dark:text-gray-700">
                           <Search className="w-6 h-6" />
@@ -672,10 +672,10 @@ export default function WishlistPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
-                          <h4 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors leading-tight">{product.title}</h4>
-                          <span className="text-sm font-black text-primary-500">${product.price || '??'}</span>
+                          <h4 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-brand-primary transition-colors leading-tight">{product.title}</h4>
+                          <span className="text-sm font-black text-brand-primary">${product.price || '??'}</span>
                         </div>
-                        {product.summary && <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 mt-1">{product.summary}</p>}
+                        {product.description && <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 mt-1">{product.description}</p>}
                         <div className="flex items-center justify-between mt-3">
                           <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-gray-400 dark:text-gray-500 hover:text-gray-600 flex items-center gap-1">
                             VIEW SOURCE <ExternalLink className="w-3 h-3" />
@@ -703,7 +703,7 @@ export default function WishlistPage() {
         <section className="space-y-6 pt-8 border-t-2 border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary-200 dark:shadow-none">
+              <div className="w-10 h-10 bg-brand-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-brand-primary/20 dark:shadow-none">
                 <Star className="w-6 h-6 fill-white" />
               </div>
               My Wishlist
@@ -713,7 +713,7 @@ export default function WishlistPage() {
 
           {loadingItems ? (
             <div className="text-center py-20 bg-white dark:bg-transparent rounded-3xl border-2 border-gray-50 dark:border-gray-800">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto" />
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto" />
               <p className="mt-4 text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Fetching your treasures...</p>
             </div>
           ) : wishlistItems.length === 0 ? (
@@ -743,7 +743,7 @@ export default function WishlistPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-black text-primary-600 dark:text-primary-400">${item.price_min}{item.price_max ? ` - ${item.price_max}` : ''}</span>
+                        <span className="text-sm font-black text-brand-primary">${item.price_min}{item.price_max ? ` - ${item.price_max}` : ''}</span>
                         <div className="flex items-center">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star key={i} className={`w-3 h-3 ${i < item.priority ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200 dark:text-gray-700'}`} />
@@ -752,7 +752,7 @@ export default function WishlistPage() {
                       </div>
                     </div>
                     <div className="flex gap-1 shrink-0">
-                      <button onClick={() => handleEditItem(item)} className="p-2 text-gray-300 dark:text-gray-600 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleEditItem(item)} className="p-2 text-gray-300 dark:text-gray-600 hover:text-brand-primary hover:bg-brand-primary/10 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
                       <button onClick={() => handleDeleteItem(item.id)} className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
@@ -767,7 +767,7 @@ export default function WishlistPage() {
                       <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">{item.privacy_level}</span>
                     </div>
                     {item.url && (
-                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-primary-500 dark:text-primary-400 hover:underline flex items-center gap-1">
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-brand-primary hover:underline flex items-center gap-1">
                         VIEW PRODUCT <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
