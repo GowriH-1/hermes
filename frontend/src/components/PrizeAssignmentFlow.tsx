@@ -127,6 +127,45 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
     }
   };
 
+  const handleAssignWishlistItem = async (item: WishlistItem) => {
+    if (!selectedParticipant) return;
+
+    setAssigning(true);
+    try {
+      // First create a prize from the wishlist item
+      const newPrize = await apiClient.createEventPrize(eventId, {
+        event_id: eventId,
+        title: item.title,
+        description: item.description || '',
+        url: item.url || '',
+        image_url: item.image_url || '',
+        price: item.price_min,
+        category: item.category,
+        exa_metadata: {},
+      });
+
+      // Then assign it to the participant
+      await apiClient.assignPrize(eventId, newPrize.id, selectedParticipant.id);
+
+      setSuccessMessage(
+        `Successfully assigned "${item.title}" to ${selectedParticipant.full_name}!`
+      );
+
+      // Reset selection and reload data
+      setSelectedParticipant(null);
+      setSelectedPrize(null);
+      await loadData();
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error: any) {
+      console.error('Failed to assign wishlist item:', error);
+      alert(error.response?.data?.detail || 'Failed to assign prize from wishlist');
+    } finally {
+      setAssigning(false);
+    }
+  };
+
   const handleAssignPrize = async () => {
     if (!selectedParticipant || !selectedPrize) return;
 
@@ -281,7 +320,7 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                       {selectedParticipant.full_name}'s Wishlist ({wishlistItems.length})
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      📋 For reference - See what they want, then select a prize from the pool below
+                      💡 Click on an item to assign it directly, or select from your prize pool below
                     </p>
                   </div>
                   <Button
@@ -312,7 +351,11 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
               ) : (
                 <div className="space-y-2 max-h-80 overflow-y-auto">
                   {wishlistItems.map((item) => (
-                    <Card key={item.id} className="p-4 bg-gray-50 dark:bg-gray-800/50 border-dashed cursor-default">
+                    <Card
+                      key={item.id}
+                      className="p-4 cursor-pointer hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all group"
+                      onClick={() => handleAssignWishlistItem(item)}
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 flex-shrink-0">
                           {item.image_url ? (
@@ -332,7 +375,7 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                          <h4 className="font-semibold text-gray-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400">
                             {item.title}
                           </h4>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -340,7 +383,7 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                             {item.price_max && item.price_max !== item.price_min && `-$${item.price_max}`}
                           </p>
                         </div>
-                        <div className="flex-shrink-0">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <span className={`px-2 py-1 rounded-full text-xs ${
                             item.priority === 1
                               ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
@@ -350,6 +393,9 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
                           }`}>
                             Priority {item.priority}
                           </span>
+                          <div className="text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <CheckCircle size={20} />
+                          </div>
                         </div>
                       </div>
                     </Card>
@@ -378,13 +424,13 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
           )}
 
           {/* Prizes Section */}
-          <div className="pt-6 border-t-2 border-primary-200 dark:border-primary-800">
+          <div className="pt-6 border-t-2 border-gray-200 dark:border-gray-700">
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Available Prizes ({availablePrizes.length})
+                Or Select from Prize Pool ({availablePrizes.length})
               </h3>
-              <p className="text-sm text-primary-600 dark:text-primary-400 mt-1 font-medium">
-                👆 Click on a prize below to select it for assignment
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Click on a prize from your pool to select it, then click "Assign Prize" button
               </p>
             </div>
             {availablePrizes.length === 0 ? (
