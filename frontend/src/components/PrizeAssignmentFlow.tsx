@@ -274,24 +274,31 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
           {/* Participant Wishlist */}
           {selectedParticipant && (
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {selectedParticipant.full_name}'s Wishlist ({wishlistItems.length})
-                </h3>
-                <Button
-                  onClick={handleGetRecommendation}
-                  disabled={loadingRecommendation || wishlistItems.length === 0 || availablePrizes.length === 0}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm"
-                >
-                  {loadingRecommendation ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    '🤖 Get AI Recommendation'
-                  )}
-                </Button>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {selectedParticipant.full_name}'s Wishlist ({wishlistItems.length})
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      📋 For reference - See what they want, then select a prize from the pool below
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleGetRecommendation}
+                    disabled={loadingRecommendation || wishlistItems.length === 0 || availablePrizes.length === 0}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm"
+                  >
+                    {loadingRecommendation ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      '🤖 Get AI Recommendation'
+                    )}
+                  </Button>
+                </div>
               </div>
 
               {loadingWishlist ? (
@@ -305,7 +312,7 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
               ) : (
                 <div className="space-y-2 max-h-80 overflow-y-auto">
                   {wishlistItems.map((item) => (
-                    <Card key={item.id} className="p-4">
+                    <Card key={item.id} className="p-4 bg-gray-50 dark:bg-gray-800/50 border-dashed cursor-default">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 flex-shrink-0">
                           {item.image_url ? (
@@ -371,10 +378,15 @@ export const PrizeAssignmentFlow: React.FC<PrizeAssignmentFlowProps> = ({ eventI
           )}
 
           {/* Prizes Section */}
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Available Prizes ({availablePrizes.length})
-            </h3>
+          <div className="pt-6 border-t-2 border-primary-200 dark:border-primary-800">
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Available Prizes ({availablePrizes.length})
+              </h3>
+              <p className="text-sm text-primary-600 dark:text-primary-400 mt-1 font-medium">
+                👆 Click on a prize below to select it for assignment
+              </p>
+            </div>
             {availablePrizes.length === 0 ? (
               <Card className="p-8 text-center text-gray-500">
                 No available prizes in the pool. Add prizes in the Prize Pool tab first.
