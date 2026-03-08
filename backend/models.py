@@ -55,6 +55,8 @@ class Event(Base):
     description = Column(Text)
     event_type = Column(String, nullable=False)  # 'hackathon', 'birthday', 'wedding', 'other'
     event_date = Column(DateTime)
+    website_url = Column(String)
+    brand_info = Column(JSON, default=dict)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     invite_code = Column(String, unique=True, index=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

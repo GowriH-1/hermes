@@ -5,6 +5,9 @@
 @layer base {
   :root {
     --radius: 0.5rem;
+    --brand-primary: 16 163 127; /* DEFAULT OpenAI Green: #10a37f */
+    --brand-primary-hover: 13 130 101;
+    --brand-secondary: 99 102 241; /* DEFAULT Indigo: #6366f1 */
   }
 
   * {

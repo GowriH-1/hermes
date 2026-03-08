@@ -30,6 +30,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [description, setDescription] = useState('');
   const [eventType, setEventType] = useState('hackathon');
   const [eventDate, setEventDate] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [createdEvent, setCreatedEvent] = useState<any>(null);
@@ -54,6 +55,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
     setDescription('');
     setEventType('hackathon');
     setEventDate('');
+    setWebsiteUrl('');
     setError('');
     setCreatedEvent(null);
     setCopied(false);
@@ -84,6 +86,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
         description: description.trim() || undefined,
         event_type: eventType,
         event_date: formattedDate,
+        website_url: websiteUrl.trim() || undefined,
       });
 
       // Store created event to show invite code in UI
@@ -247,6 +250,23 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Website URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Sponsor Website URL (Optional)
+                  </label>
+                  <Input
+                    type="url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="https://yourcompany.com"
+                    className="w-full"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    We'll use this to automatically theme your event dashboard.
+                  </p>
                 </div>
 
                 {/* Event Date */}

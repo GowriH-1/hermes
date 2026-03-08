@@ -24,6 +24,7 @@ interface Event {
 }
 
 export default function EventManagementPage() {
+  const { setBrandConfig } = useTheme();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -33,10 +34,11 @@ export default function EventManagementPage() {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
+    setBrandConfig(null);
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     setCurrentUserId(user.id);
     loadEvents();
-  }, []);
+  }, [setBrandConfig]);
 
   const loadEvents = async () => {
     try {

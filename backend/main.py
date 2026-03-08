@@ -34,10 +34,13 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS middleware - allow all origins for hackathon
+# CORS middleware - allow specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change in production
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -222,11 +225,22 @@ def create_event(
     while db.query(models.Event).filter(models.Event.invite_code == invite_code).first():
         invite_code = generate_invite_code()
 
+    # Extract brand info if website URL provided
+    brand_info = {}
+    if event_data.website_url:
+        try:
+            exa_service = get_exa_service()
+            brand_info = exa_service.extract_brand_info(event_data.website_url)
+        except Exception as e:
+            print(f"Error extracting brand info: {e}")
+
     new_event = models.Event(
         name=event_data.name,
         description=event_data.description,
         event_type=event_data.event_type,
         event_date=event_data.event_date,
+        website_url=event_data.website_url,
+        brand_info=brand_info,
         created_by=current_user.id,
         invite_code=invite_code,
     )

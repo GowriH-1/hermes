@@ -22,6 +22,7 @@ interface Event {
 }
 
 export default function EventsPage() {
+  const { setBrandConfig } = useTheme();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -29,8 +30,9 @@ export default function EventsPage() {
   const [confirmLeave, setConfirmLeave] = useState<{ eventId: number; eventName: string } | null>(null);
 
   useEffect(() => {
+    setBrandConfig(null);
     loadEvents();
-  }, []);
+  }, [setBrandConfig]);
 
   const loadEvents = async () => {
     try {

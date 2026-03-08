@@ -6,7 +6,7 @@ import { Button } from './ui/Button';
 
 export function TopNav() {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, brandConfig } = useTheme();
   const location = useLocation();
 
   const isActive = (path: string) => {
@@ -20,8 +20,17 @@ export function TopNav() {
           {/* Left: Logo + Main Nav */}
           <div className="flex items-center space-x-8">
             {/* Logo */}
-            <Link to="/wishlist" className="flex items-center">
-              <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-500">Gift Portal</h1>
+            <Link to="/wishlist" className="flex items-center gap-2">
+              {brandConfig?.logo_url ? (
+                <img src={brandConfig.logo_url} alt="Brand Logo" className="h-8 w-auto object-contain" />
+              ) : (
+                <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center text-white font-bold">
+                  H
+                </div>
+              )}
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {brandConfig?.tagline ? brandConfig.tagline : 'Hermes Portal'}
+              </h1>
             </Link>
 
             {/* Main Navigation */}

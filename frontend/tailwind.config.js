@@ -47,6 +47,11 @@ export default {
           800: "#155E75",
           900: "#164E63",
         },
+        brand: {
+          primary: "rgb(var(--brand-primary) / <alpha-value>)",
+          'primary-hover': "rgb(var(--brand-primary-hover) / <alpha-value>)",
+          secondary: "rgb(var(--brand-secondary) / <alpha-value>)",
+        },
       },
       fontFamily: {
         sans: ['Geist', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],

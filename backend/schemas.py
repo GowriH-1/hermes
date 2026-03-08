@@ -64,6 +64,7 @@ class EventCreate(BaseModel):
     description: Optional[str] = None
     event_type: str  # 'hackathon', 'birthday', 'wedding', 'other'
     event_date: Optional[datetime] = None
+    website_url: Optional[str] = None
 
 
 class EventJoin(BaseModel):
@@ -81,6 +82,8 @@ class EventResponse(BaseModel):
     description: Optional[str]
     event_type: str
     event_date: Optional[datetime]
+    website_url: Optional[str]
+    brand_info: Optional[dict]
     created_by: int
     invite_code: str
     created_at: datetime

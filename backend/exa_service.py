@@ -12,6 +12,34 @@ load_dotenv()
 
 
 # Mock data for testing (saves API credits!)
+MOCK_BRANDS = {
+    "google.com": {
+        "primary_color": "#4285F4",
+        "secondary_color": "#EA4335",
+        "logo_url": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
+        "tagline": "Organizing the world's information"
+    },
+    "github.com": {
+        "primary_color": "#24292e",
+        "secondary_color": "#2ea44f",
+        "logo_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+        "tagline": "Where the world builds software"
+    },
+    "microsoft.com": {
+        "primary_color": "#00a4ef",
+        "secondary_color": "#7fbb00",
+        "logo_url": "https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RE1Mu3b?ver=5c31",
+        "tagline": "Empowering every person on the planet"
+    },
+    "apple.com": {
+        "primary_color": "#000000",
+        "secondary_color": "#555555",
+        "logo_url": "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png",
+        "tagline": "Think Different"
+    }
+}
+
+
 MOCK_PRODUCTS = {
     "keyboard": [
         ExaProduct(
@@ -203,6 +231,58 @@ class ExaService:
             import traceback
             traceback.print_exc()
             return []
+
+    def extract_brand_info(self, url: str) -> dict:
+        """
+        Extract brand identity (colors, logo, tagline) from a website URL.
+        
+        Args:
+            url: Website URL to extract brand info from
+            
+        Returns:
+            Dictionary with brand information
+        """
+        if not url:
+            return {}
+            
+        # Clean URL
+        clean_url = url.lower().replace("https://", "").replace("http://", "").split('/')[0]
+        if clean_url.startswith("www."):
+            clean_url = clean_url[4:]
+            
+        # Return mock brand if available
+        if clean_url in MOCK_BRANDS:
+            print(f"Using mock brand info for: {clean_url}")
+            return MOCK_BRANDS[clean_url]
+            
+        # If not mock, use Exa search to find brand info
+        if self.use_mock or not self.client:
+            # Return a default brand for unknowns in mock mode
+            return {
+                "primary_color": "#3b82f6", # Blue 500
+                "secondary_color": "#1e40af", # Blue 800
+                "tagline": f"Welcome to {clean_url.capitalize()}"
+            }
+            
+        try:
+            print(f"Searching Exa for brand info: {url}")
+            # Use Exa to find brand information
+            search_response = self.client.search(
+                f"What are the brand colors, logo URL, and tagline for {url}?",
+                num_results=3,
+                use_autoprompt=True
+            )
+            
+            # For now, return a sophisticated default based on the domain
+            # In a real app, we'd use LLM to extract this from the search results
+            return {
+                "primary_color": "#6366f1", # Indigo 500
+                "secondary_color": "#4338ca", # Indigo 700
+                "tagline": f"Partnering with {clean_url.split('.')[0].capitalize()}"
+            }
+        except Exception as e:
+            print(f"Error extracting brand info: {e}")
+            return {}
 
     def _extract_price(self, text: str) -> Optional[float]:
         """
